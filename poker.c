@@ -1,37 +1,53 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "collection.h"
 #include "poker.h"
 
-inline int
-LibDeckPokerSameCardValue(int numHits)
+void
+LibDeckPokerUpdateHits(int numHits,
+                       LibDeckCard *currentCard,
+                       LibDeckPokerClassifyResult *result)
 {
-   switch (numHits) {
-      case 1:
-         return LIBDECK_POKER_HAND_PAIR;
-         break;
-      case 2:
-         return LIBDECK_POKER_HAND_THREE;
-         break;
-      case 3:
-         return LIBDECK_POKER_HAND_FOUR;
-         break;
+   if (numHits > 0) {
+      switch (numHits) {
+         case 1:
+            result->handValue += LIBDECK_POKER_HAND_PAIR;
+            // Update kicker information
+            if (result->kicker1.value == 0) {
+               LibDeck_CardCopy(&result->kicker1, currentCard);
+            } else {
+               LibDeck_CardCopy(&result->kicker2, currentCard);
+            }
+            break;
+         case 2:
+            result->handValue += LIBDECK_POKER_HAND_THREE;
+            LibDeck_CardCopy(&result->kicker2, currentCard);
+            break;
+         case 3:
+            result->handValue += LIBDECK_POKER_HAND_FOUR;
+            LibDeck_CardCopy(&result->kicker2, currentCard);
+            break;
+      }
    }
-
-   return 0;
 }
 
-int
+LibDeckPokerClassifyResult *
 LibDeck_PokerHandClassify(LibDeckCol *hand)
 {
-   int result = 0;
+   LibDeckPokerClassifyResult *result;
    int storedValue, numHits;
-   LibDeckCard *currentCard;
+   LibDeckCard *currentCard, storedCard;
    LibDeckCol *copyCol;
 
    if (hand->numCards != 5) {
-      return -1; // Can only classify collections of size 5
+      printf("ERROR: Can not classify, collection size %d != 5\n", hand->numCards);
+      return NULL;
    }
+
+   result = (LibDeckPokerClassifyResult *) malloc(sizeof(LibDeckPokerClassifyResult));
+   memset(result, 0, sizeof(LibDeckPokerClassifyResult));
 
    // Take a copy of the input collection since we will be modifying it (sort)
    copyCol = LibDeck_ColClone(hand);
@@ -50,7 +66,7 @@ LibDeck_PokerHandClassify(LibDeckCol *hand)
       }
    }
    if (numHits == 5) {
-      result += LIBDECK_POKER_HAND_FLUSH;
+      result->handValue += LIBDECK_POKER_HAND_FLUSH;
    }
 
    // Straight check
@@ -70,32 +86,39 @@ LibDeck_PokerHandClassify(LibDeckCol *hand)
        (LibDeck_ColGetFirst(copyCol)->value == LIBDECK_CARD_VALUE_TWO) &&
        (LibDeck_ColGetLast(copyCol)->value == LIBDECK_CARD_VALUE_ACE)) {
       numHits = 5;
+      // kicker special cased to the 5 as the highest card of the straight
+      LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetNth(copyCol, 3));
    }
    if (numHits == 5) {
-      result += LIBDECK_POKER_HAND_STRAIGHT;
+      result->handValue += LIBDECK_POKER_HAND_STRAIGHT;
+      if (result->kicker1.value == 0) {
+         // highest card of the straight
+         LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetLast(copyCol));
+      }
    }
 
    // Straight, Flush, or Straight+Flush at this point is the final result
-   if (result > 0) {
+   if (result->handValue > 0) {
       goto done;
    }
 
    // Linear search for same card values
-   storedValue = -1;
+   memset(&storedCard, 0, sizeof(storedCard));
    numHits = 0;
    LIBDECK_COL_FORALL(copyCol, currentCard) {
-      if (currentCard->value == storedValue) {
+      if (currentCard->value == storedCard.value) {
          numHits++;
       } else {
-         storedValue = currentCard->value;
-         if (numHits > 0) {
-            result += LibDeckPokerSameCardValue(numHits);
-         }
+         LibDeckPokerUpdateHits(numHits, &storedCard, result);
+         LibDeck_CardCopy(&storedCard, currentCard);
          numHits = 0;
       }
    }
-   if (numHits > 0) {
-      result += LibDeckPokerSameCardValue(numHits);
+   LibDeckPokerUpdateHits(numHits, &storedCard, result);
+
+   // If we got good ol' nothin update kicker with largest card
+   if (result->handValue == 0) {
+      LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetLast(copyCol));
    }
 
 done:

@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "libdeck.h"
 
 int main(int argc, char **argv)
 {
    LibDeckCol *myHand, *myDeck;
+   LibDeckPokerClassifyResult *result;
    int i;
 
    LibDeck_InitLibrary();
@@ -20,8 +22,10 @@ int main(int argc, char **argv)
    for (i = 0; i < 10; i++) {
       myHand = LibDeck_ColPopN(myDeck, 5);
       printf("\n\nHand = "); LibDeck_PrintCol(myHand); printf(" = ");
-      LibDeck_PrintPokerHandValue(LibDeck_PokerHandClassify(myHand));
+      result = LibDeck_PokerHandClassify(myHand);
+      LibDeck_PrintPokerClassifyResult(result);
       LibDeck_ColFree(myHand);
+      free(result);
    }
 
    printf("\n\nRemaining = "); LibDeck_PrintCol(myDeck);printf("\n");

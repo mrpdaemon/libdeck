@@ -4,11 +4,12 @@
 #include "collection.h"
 #include "poker.h"
 
-void LibDeck_PrintCard(LibDeckCard *card)
+void
+LibDeckPrintCardValue(int value)
 {
-   switch (card->value) {
+   switch (value) {
       case LIBDECK_CARD_VALUE_TWO ... LIBDECK_CARD_VALUE_TEN:
-         printf("%d", card->value);
+         printf("%d", value);
          break;
       case LIBDECK_CARD_VALUE_JACK:
          printf("J");
@@ -25,8 +26,12 @@ void LibDeck_PrintCard(LibDeckCard *card)
       default:
          break;
    }
+}
 
-   switch (card->suite) {
+void
+LibDeckPrintCardSuite(int suite)
+{
+   switch (suite) {
       case LIBDECK_CARD_SUITE_SPADE:
          printf("S");
          break;
@@ -42,6 +47,13 @@ void LibDeck_PrintCard(LibDeckCard *card)
       default:
          break;
    }
+}
+
+void
+LibDeck_PrintCard(LibDeckCard *card)
+{
+   LibDeckPrintCardValue(card->value);
+   LibDeckPrintCardSuite(card->suite);
 }
 
 void LibDeck_PrintCol(LibDeckCol *collection)
@@ -60,35 +72,53 @@ void LibDeck_PrintCol(LibDeckCol *collection)
    printf("]");
 }
 
-void LibDeck_PrintPokerHandValue(int classifyResult)
+void LibDeck_PrintPokerClassifyResult(LibDeckPokerClassifyResult *result)
 {
-   switch (classifyResult) {
+   switch (result->handValue) {
       case LIBDECK_POKER_HAND_PAIR:
-         printf("Pair");
+         printf("Pair of ");
+         LibDeckPrintCardValue(result->kicker1.value);
+         printf("'s");
          break;
       case LIBDECK_POKER_HAND_TWO_PAIR:
-         printf("Two Pair");
+         printf("Two Pair ");
+         LibDeckPrintCardValue(result->kicker2.value);
+         printf(" and ");
+         LibDeckPrintCardValue(result->kicker1.value);
          break;
       case LIBDECK_POKER_HAND_THREE:
-         printf("Three of a kind");
+         printf("Three of a kind ");
+         LibDeckPrintCardValue(result->kicker2.value);
+         printf("'s");
          break;
       case LIBDECK_POKER_HAND_STRAIGHT:
-         printf("Straight");
+         printf("Straight with ");
+         LibDeckPrintCardValue(result->kicker1.value);
+         printf(" high");
          break;
       case LIBDECK_POKER_HAND_FLUSH:
          printf("Flush");
          break;
       case LIBDECK_POKER_HAND_FULL_HOUSE:
-         printf("Full House");
+         printf("Full House ");
+         LibDeckPrintCardValue(result->kicker2.value);
+         printf(" and ");
+         LibDeckPrintCardValue(result->kicker1.value);
          break;
       case LIBDECK_POKER_HAND_FOUR:
-         printf("Four of a kind");
+         printf("Four of a kind ");
+         LibDeckPrintCardValue(result->kicker2.value);
+         printf("'s");
          break;
       case LIBDECK_POKER_HAND_STR_FLUSH:
-         printf("Straight Flush");
+         printf("Straight Flush with ");
+         LibDeckPrintCardValue(result->kicker1.value);
+         printf(" high");
          break;
       default:
-         printf("<nothing>");
+         printf("nothing with ");
+         LibDeckPrintCardValue(result->kicker1.value);
+         printf(" high");
          break;
    }
 }

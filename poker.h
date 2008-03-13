@@ -1,6 +1,7 @@
 #ifndef _LIBDECK_POKER_H
 #define _LIBDECK_POKER_H
 
+#include "card.h"
 #include "collection.h"
 
 // Hand values
@@ -14,6 +15,16 @@
 #define LIBDECK_POKER_HAND_PAIR         3
 #define LIBDECK_POKER_HAND_NO_PAIR      0
 
-int   LibDeck_PokerHandClassify(LibDeckCol *hand);
+// Hand classification result structure
+typedef struct LibDeckPokerClassifyResult {
+   int handValue;
+   LibDeckCard kicker1;
+   LibDeckCard kicker2;
+} LibDeckPokerClassifyResult;
+
+LibDeckPokerClassifyResult   *LibDeck_PokerHandClassify(LibDeckCol *);
+
+int      LibDeck_PokerResultsCompare(LibDeckPokerClassifyResult *, 
+                                     LibDeckPokerClassifyResult *);
 
 #endif /* _LIBDECK_POKER_H */

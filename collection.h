@@ -22,6 +22,7 @@ LibDeckCol *  LibDeck_ColPopN(LibDeckCol *, int);
 
 LibDeckCard * LibDeck_ColGetFirst(LibDeckCol *);
 LibDeckCard * LibDeck_ColGetLast(LibDeckCol *);
+LibDeckCard * LibDeck_ColGetNth(LibDeckCol *, int);
 
 void          LibDeck_ColShuffle(LibDeckCol *, int);
 void          LibDeck_ColSort(LibDeckCol *);

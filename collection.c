@@ -39,8 +39,8 @@ LibDeck_ColClone(LibDeckCol *collection)
    return result;
 }
 
-inline LibDeckCard *
-LibDeckColGetNth(LibDeckCol *collection, int n)
+LibDeckCard *
+LibDeck_ColGetNth(LibDeckCol *collection, int n)
 {
    return &collection->cards[n];
 }
@@ -48,13 +48,13 @@ LibDeckColGetNth(LibDeckCol *collection, int n)
 LibDeckCard *
 LibDeck_ColGetFirst(LibDeckCol *collection)
 {
-   return LibDeckColGetNth(collection, 0);
+   return LibDeck_ColGetNth(collection, 0);
 }
 
 LibDeckCard *
 LibDeck_ColGetLast(LibDeckCol *collection)
 {
-   return LibDeckColGetNth(collection, collection->numCards - 1);
+   return LibDeck_ColGetNth(collection, collection->numCards - 1);
 }
 
 int
@@ -64,7 +64,7 @@ LibDeck_ColAddCard(LibDeckCol *collection, LibDeckCard *card)
       return -1;
    }
 
-   LibDeck_CardCopy(LibDeckColGetNth(collection, collection->numCards), card);
+   LibDeck_CardCopy(LibDeck_ColGetNth(collection, collection->numCards), card);
 
    collection->numCards++;
 
@@ -117,10 +117,10 @@ LibDeckColSwapCards(LibDeckCol *collection, int c1, int c2)
       return;
    }
 
-   LibDeck_CardCopy(&tmpCard, LibDeckColGetNth(collection, c1));
-   LibDeck_CardCopy(LibDeckColGetNth(collection, c1),
-                    LibDeckColGetNth(collection, c2));
-   LibDeck_CardCopy(LibDeckColGetNth(collection, c2), &tmpCard);
+   LibDeck_CardCopy(&tmpCard, LibDeck_ColGetNth(collection, c1));
+   LibDeck_CardCopy(LibDeck_ColGetNth(collection, c1),
+                    LibDeck_ColGetNth(collection, c2));
+   LibDeck_CardCopy(LibDeck_ColGetNth(collection, c2), &tmpCard);
 }
 
 void
@@ -142,8 +142,8 @@ LibDeck_ColSort(LibDeckCol *collection)
 
    for (i = 0; i < (collection->numCards - 1); i++) {
       for (j = i + 1; j < collection->numCards; j++) {
-         if (LibDeck_CardCompare(LibDeckColGetNth(collection, i),
-                                 LibDeckColGetNth(collection, j)) < 0) {
+         if (LibDeck_CardCompare(LibDeck_ColGetNth(collection, i),
+                                 LibDeck_ColGetNth(collection, j)) < 0) {
             LibDeckColSwapCards(collection, i, j);
          }
       }
