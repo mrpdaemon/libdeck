@@ -1,0 +1,17 @@
+Start a git repository
+
+Poker classify result should be a struct and include kicker. 
+New poker method to compare two classify result structs.
+New poker method to return best (5) and classify result given (2,5)
+New poker method to compute odds of winning given (2,2,2...) (5-X) (rest)
+int *(LibDeckCol **hands, int numHands, LibDeckCol *community, LibDeckCol *rest)
+
+Use /dev/random for random numbers
+
+Benchmark methods
+
+Code comments
+
+Function pointer infrastructure to slide in different implementations
+
+Logging / debugging infrastructure
