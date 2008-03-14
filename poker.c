@@ -8,7 +8,7 @@
 void
 LibDeckPokerUpdateHits(int numHits,
                        LibDeckCard *currentCard,
-                       LibDeckPokerClassifyResult *result)
+                       LibDeckPokerResult *result)
 {
    if (numHits > 0) {
       switch (numHits) {
@@ -33,10 +33,10 @@ LibDeckPokerUpdateHits(int numHits,
    }
 }
 
-LibDeckPokerClassifyResult *
-LibDeck_PokerHandClassify(LibDeckCol *hand)
+LibDeckPokerResult *
+LibDeck_PokerClassify(LibDeckCol *hand)
 {
-   LibDeckPokerClassifyResult *result;
+   LibDeckPokerResult *result;
    int storedValue, numHits;
    LibDeckCard *currentCard, storedCard;
    LibDeckCol *copyCol;
@@ -46,8 +46,8 @@ LibDeck_PokerHandClassify(LibDeckCol *hand)
       return NULL;
    }
 
-   result = (LibDeckPokerClassifyResult *) malloc(sizeof(LibDeckPokerClassifyResult));
-   memset(result, 0, sizeof(LibDeckPokerClassifyResult));
+   result = (LibDeckPokerResult *) malloc(sizeof(LibDeckPokerResult));
+   memset(result, 0, sizeof(LibDeckPokerResult));
 
    // Take a copy of the input collection since we will be modifying it (sort)
    copyCol = LibDeck_ColClone(hand);
@@ -125,4 +125,61 @@ done:
 
    LibDeck_ColFree(copyCol);
    return result;
+}
+
+int
+LibDeckPokerIntCompare(int a, int b)
+{
+   if (a > b) {
+      return -1;
+   } else if (a < b) {
+      return 1;
+   }
+
+   return 0;
+}
+
+int
+LibDeck_PokerCompare(LibDeckPokerResult *result1, LibDeckPokerResult *result2)
+{
+   int comp;
+
+   if (result1->handValue != result2->handValue) {
+      if (result1->handValue > result2->handValue) {
+         return -1;
+      } else {
+         return 1;
+      }
+   }
+
+   // Equal hand values, need to compare kickers selectively
+   switch (result1->handValue) {
+      case LIBDECK_POKER_HAND_NOTHING:
+      case LIBDECK_POKER_HAND_PAIR:
+      case LIBDECK_POKER_HAND_STRAIGHT:
+      case LIBDECK_POKER_HAND_STR_FLUSH:
+         return LibDeckPokerIntCompare(result1->kicker1.value, 
+                                       result2->kicker1.value);
+         break;
+      case LIBDECK_POKER_HAND_THREE:
+      case LIBDECK_POKER_HAND_FOUR:
+         return LibDeckPokerIntCompare(result1->kicker2.value, 
+                                       result2->kicker2.value);
+         break;
+      case LIBDECK_POKER_HAND_TWO_PAIR:
+      case LIBDECK_POKER_HAND_FULL_HOUSE:
+         comp = LibDeckPokerIntCompare(result1->kicker2.value, 
+                                        result2->kicker2.value);
+
+         if (comp != 0) { // if large kicker is not equal we're done
+            return comp;
+         }
+
+         return LibDeckPokerIntCompare(result1->kicker1.value, 
+                                       result2->kicker1.value);
+         break;
+   }
+
+   // Flush falls through
+   return 0;
 }

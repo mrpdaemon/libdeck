@@ -13,18 +13,18 @@
 #define LIBDECK_POKER_HAND_THREE        7
 #define LIBDECK_POKER_HAND_TWO_PAIR     6  // 2 * pair
 #define LIBDECK_POKER_HAND_PAIR         3
-#define LIBDECK_POKER_HAND_NO_PAIR      0
+#define LIBDECK_POKER_HAND_NOTHING      0
 
 // Hand classification result structure
-typedef struct LibDeckPokerClassifyResult {
+typedef struct LibDeckPokerResult {
    int handValue;
    LibDeckCard kicker1;
    LibDeckCard kicker2;
-} LibDeckPokerClassifyResult;
+} LibDeckPokerResult;
 
-LibDeckPokerClassifyResult   *LibDeck_PokerHandClassify(LibDeckCol *);
+LibDeckPokerResult   *LibDeck_PokerClassify(LibDeckCol *);
 
-int      LibDeck_PokerResultsCompare(LibDeckPokerClassifyResult *, 
-                                     LibDeckPokerClassifyResult *);
+int      LibDeck_PokerCompare(LibDeckPokerResult *, 
+                              LibDeckPokerResult *);
 
 #endif /* _LIBDECK_POKER_H */

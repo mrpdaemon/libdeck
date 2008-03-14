@@ -72,7 +72,7 @@ void LibDeck_PrintCol(LibDeckCol *collection)
    printf("]");
 }
 
-void LibDeck_PrintPokerClassifyResult(LibDeckPokerClassifyResult *result)
+void LibDeck_PrintPokerResult(LibDeckPokerResult *result)
 {
    switch (result->handValue) {
       case LIBDECK_POKER_HAND_PAIR:
