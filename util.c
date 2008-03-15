@@ -19,21 +19,63 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#else
 #include <stdlib.h>
+#else
 #include <time.h>
 #endif /* HAVE_DEVRANDOM */
 
 /* Flag to indicate whether random subsystem is initialized */
 int randomInitialized = 0;
 
+/* Counter to determine whether we should re-seed the generator */
+#define RESEED_EVERY_N 10000
+int reseedCounter;
+
 #ifdef HAVE_DEVRANDOM
 /* Random device location */
 #define DEVRANDOM "/dev/urandom"
-/* File descriptor for opened random file */
-int fdRandom;
 #endif /* HAVE_DEVRANDOM */
 
+/*
+ * LibDeckSeedRandom --
+ *
+ *    Seed the pseudorandom number generator.
+ *
+ * Results:
+ *    0 on success, -1 on error.
+ *
+ * Side effects:
+ *    None.
+ */
+int
+LibDeckSeedRandom(void)
+{
+#ifdef HAVE_DEVRANDOM
+   int fdRandom, randomInt, bytesRead;
+
+   fdRandom = open(DEVRANDOM, O_RDONLY);
+
+   if (fdRandom < 0) {
+      printf("ERROR: Could not open random device %s\n", DEVRANDOM);
+      return -1;
+   }
+
+   bytesRead = read(fdRandom, &randomInt, sizeof(int));
+
+   if (bytesRead != sizeof(int)) {
+      printf("ERROR: Could not read %d bytes of random data\n", sizeof(int));
+      return -1;
+   }
+
+   srand(randomInt);
+
+   close(fdRandom);
+#else
+   srand(time(NULL));
+#endif /* HAVE_DEVRANDOM */
+
+   return 0;
+}
 /*
  * LibDeck_InitRandom --
  *
@@ -43,27 +85,24 @@ int fdRandom;
  *    0 on success, -1 on error.
  *
  * Side effects:
- *    DEVRANDOM could be opened.
+ *    None.
  */
 int
 LibDeck_InitRandom(void)
 {
+   int result;
+
    if (randomInitialized) {
       printf("ERROR: Random subsystem already initialized\n");
       return -1;
    }
 
-#ifdef HAVE_DEVRANDOM
-   fdRandom = open(DEVRANDOM, O_RDONLY);
-
-   if (fdRandom < 0) {
-      printf("ERROR: Could not open random device %s\n", DEVRANDOM);
-      return -1;
+   result = LibDeckSeedRandom();
+   if (result != 0) {
+      return result;
    }
-#else
-   srand(time(NULL));
-#endif /* HAVE_DEVRANDOM */
 
+   reseedCounter = 0;
    randomInitialized = 1;
 
    return 0;
@@ -73,7 +112,6 @@ LibDeck_InitRandom(void)
  * LibDeck_Random --
  *
  *    Returns a random number modulo 'modulus'.
- *    XXX: Don't need to read full integer length for small modulus
  *
  * Results:
  *    -1 on error, 0 <= retval < modulus on success.
@@ -84,26 +122,18 @@ LibDeck_InitRandom(void)
 int
 LibDeck_Random(int modulus) // IN: modulus to apply to random result
 {
-#ifdef HAVE_DEVRANDOM
-   int randomInt, bytesRead;
-#endif /* HAVE_DEVRANDOM */
-
    if (!randomInitialized) {
       return -1;
    }
 
-#ifdef HAVE_DEVRANDOM
-   bytesRead = read(fdRandom, &randomInt, sizeof(int));
-
-   if (bytesRead != sizeof(int)) {
-      printf("ERROR: Could not read %d bytes of random data\n", sizeof(int));
-      return -1;
+   if (reseedCounter == RESEED_EVERY_N) {
+      LibDeckSeedRandom();
+      reseedCounter = 0;
+   } else {
+      reseedCounter++;
    }
 
-   return randomInt % modulus;
-#else
    return random() % modulus;
-#endif /* HAVE_DEVRANDOM */
 }
 
 /*
@@ -115,13 +145,11 @@ LibDeck_Random(int modulus) // IN: modulus to apply to random result
  *    None.
  *
  * Side effects:
- *    DEVRANDOM could be closed.
+ *    None.
  */
 void
 LibDeck_CloseRandom(void)
 {
-#ifdef HAVE_DEVRANDOM
-   close(fdRandom);
-#endif /* HAVE_DEVRANDOM */
+   reseedCounter = 0;
    randomInitialized = 0;
 }
