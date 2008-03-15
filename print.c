@@ -1,11 +1,39 @@
+/*
+ * print.c - LibDeck printing utilities implementation.
+ *  Copyright (C) 2008  Mark R. Pariente
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include <stdio.h>
 
 #include "card.h"
 #include "collection.h"
 #include "poker.h"
 
+/*
+ * LibDeckPrintCardValue --
+ *
+ *    Internal method to print the face value of a card.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
 void
-LibDeckPrintCardValue(int value)
+LibDeckPrintCardValue(int value) // IN: Card value to print
 {
    switch (value) {
       case LIBDECK_CARD_VALUE_TWO ... LIBDECK_CARD_VALUE_TEN:
@@ -28,8 +56,19 @@ LibDeckPrintCardValue(int value)
    }
 }
 
+/*
+ * LibDeckPrintCardSuite --
+ *
+ *    Internal method to print the suite of a card.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
 void
-LibDeckPrintCardSuite(int suite)
+LibDeckPrintCardSuite(int suite) // IN: Card suite to print
 {
    switch (suite) {
       case LIBDECK_CARD_SUITE_SPADE:
@@ -49,18 +88,42 @@ LibDeckPrintCardSuite(int suite)
    }
 }
 
+/*
+ * LibDeck_PrintCard --
+ *
+ *    Prints a two-character ASCII representation of the given card.
+ *    For example, king of hearts = KH, five of diamonds = 5D etc.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
 void
-LibDeck_PrintCard(LibDeckCard *card)
+LibDeck_PrintCard(LibDeckCard *card) // IN: Card to print
 {
    LibDeckPrintCardValue(card->value);
    LibDeckPrintCardSuite(card->suite);
 }
 
-void LibDeck_PrintCol(LibDeckCol *collection)
+/*
+ * LibDeck_PrintCol --
+ *
+ *    Prints two-character ASCII representations of all cards in the
+ *    given collection.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
+void LibDeck_PrintCol(LibDeckCol *collection) // IN: Collection to print
 {
    LibDeckCard *curCard;
 
-   printf("[");
+   printf("{");
 
    LIBDECK_COL_FORALL(collection, curCard) {
       LibDeck_PrintCard(curCard);
@@ -69,10 +132,21 @@ void LibDeck_PrintCol(LibDeckCol *collection)
       }
    }
 
-   printf("]");
+   printf("}[%d]", collection->numCards);
 }
 
-void LibDeck_PrintPokerResult(LibDeckPokerResult *result)
+/*
+ * LibDeck_PrintPokerResult --
+ *
+ *    Prints the text representation of the given poker result.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
+void LibDeck_PrintPokerResult(LibDeckPokerResult *result) // IN: Result to print
 {
    switch (result->handValue) {
       case LIBDECK_POKER_HAND_PAIR:

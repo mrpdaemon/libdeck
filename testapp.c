@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
    printf("Deck = "); LibDeck_PrintCol(myDeck);
 
-   LibDeck_ColShuffle(myDeck, 5000);
+   LibDeck_ColShuffle(myDeck, 1000 + LibDeck_Random(5000));
 
    printf("\n\nShuffled = "); LibDeck_PrintCol(myDeck); printf("\n");
 
@@ -48,6 +48,8 @@ int main(int argc, char **argv)
 
    printf("\nRemaining = "); LibDeck_PrintCol(myDeck);printf("\n");
    LibDeck_ColFree(myDeck);
+
+   LibDeck_DestroyLibrary();
 
    return 0;
 }

@@ -1,3 +1,20 @@
+/*
+ * poker.c - LibDeck poker library implementation.
+ *  Copyright (C) 2008  Mark R. Pariente
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,36 +22,61 @@
 #include "collection.h"
 #include "poker.h"
 
-void
-LibDeckPokerUpdateHits(int numHits,
-                       LibDeckCard *currentCard,
-                       LibDeckPokerResult *result)
+/*
+ * LibDeckPokerUpdateHits --
+ *
+ *    Internal method to update a LibDeckPokerResult based on same-card
+ *    values.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    'result' is updated with the value / kicker information.
+ */
+static void
+LibDeckPokerUpdateHits(int numHits, // IN: Number of same cards (1=pair 2=trip etc.)
+                       LibDeckCard *kicker, // IN: Card to record as kicker
+                       LibDeckPokerResult *result) // OUT: Result to update
 {
    if (numHits > 0) {
       switch (numHits) {
          case 1:
+            // We use kicker1 for the larger pair in case of two-pair
             result->handValue += LIBDECK_POKER_HAND_PAIR;
-            // Update kicker information
             if (result->kicker1.value == 0) {
-               LibDeck_CardCopy(&result->kicker1, currentCard);
+               LibDeck_CardCopy(&result->kicker1, kicker);
             } else {
-               LibDeck_CardCopy(&result->kicker2, currentCard);
+               LibDeck_CardCopy(&result->kicker2, kicker);
             }
             break;
          case 2:
+            // We use the second kicker for three/four of a kind
             result->handValue += LIBDECK_POKER_HAND_THREE;
-            LibDeck_CardCopy(&result->kicker2, currentCard);
+            LibDeck_CardCopy(&result->kicker2, kicker);
             break;
          case 3:
             result->handValue += LIBDECK_POKER_HAND_FOUR;
-            LibDeck_CardCopy(&result->kicker2, currentCard);
+            LibDeck_CardCopy(&result->kicker2, kicker);
             break;
       }
    }
 }
 
+/*
+ * LibDeck_PokerClassify --
+ *
+ *    Given a poker hand (5 cards) returns a newly allocated result structure
+ *    containing the computed hand value and kicker information.
+ *
+ * Results:
+ *    Pointer to the result.
+ *
+ * Side effects:
+ *    Memory is allocated for the result.
+ */
 LibDeckPokerResult *
-LibDeck_PokerClassify(LibDeckCol *hand)
+LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
 {
    LibDeckPokerResult *result;
    int storedValue, numHits;
@@ -49,7 +91,7 @@ LibDeck_PokerClassify(LibDeckCol *hand)
    result = (LibDeckPokerResult *) malloc(sizeof(LibDeckPokerResult));
    memset(result, 0, sizeof(LibDeckPokerResult));
 
-   // Take a copy of the input collection since we will be modifying it (sort)
+   // Take a copy of the input collection since we will be modifying it w/ sort
    copyCol = LibDeck_ColClone(hand);
 
    LibDeck_ColSort(copyCol);
@@ -127,8 +169,20 @@ done:
    return result;
 }
 
-int
-LibDeckPokerIntCompare(int a, int b)
+/*
+ * LibDeckPokerIntCompare --
+ *
+ *    Internal method to compare two integers.
+ *
+ * Results:
+ *    0 if equal, -1 if a>b , 1 if b>a
+ *
+ * Side effects:
+ *    None.
+ */
+static inline int
+LibDeckPokerIntCompare(int a, // IN: First integer to compare
+                       int b) // IN: Second integer to compare
 {
    if (a > b) {
       return -1;
@@ -139,8 +193,20 @@ LibDeckPokerIntCompare(int a, int b)
    return 0;
 }
 
+/*
+ * LibDeck_PokerCompare --
+ *
+ *    Given two hand results compare them to determine which hand wins.
+ *
+ * Results:
+ *    0 on draw, -1 if result1 wins, 1 if result2 wins.
+ *
+ * Side effects:
+ *    None.
+ */
 int
-LibDeck_PokerCompare(LibDeckPokerResult *result1, LibDeckPokerResult *result2)
+LibDeck_PokerCompare(LibDeckPokerResult *result1, // IN: First result to compare
+                     LibDeckPokerResult *result2) // IN: Second result to compare
 {
    int comp;
 
