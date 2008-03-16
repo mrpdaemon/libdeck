@@ -32,33 +32,31 @@
  *    None.
  *
  * Side effects:
- *    'result' is updated with the value / kicker information.
+ *    The same-value cards are added to kickerCol.
  */
 static void
 LibDeckPokerUpdateHits(int numHits, // IN: Number of same cards (1=pair 2=trip etc.)
-                       LibDeckCard *kicker, // IN: Card to record as kicker
+                       LibDeckCard *sameCard, // IN: Last same-value card
+                       LibDeckCol *kickerCol, // OUT: Kicker collection to update
                        LibDeckPokerResult *result) // OUT: Result to update
 {
+   LibDeckCard *tmpCard;
+
    if (numHits > 0) {
       switch (numHits) {
          case 1:
-            // We use kicker1 for the larger pair in case of two-pair
             result->handValue += LIBDECK_POKER_HAND_PAIR;
-            if (result->kicker1.value == 0) {
-               LibDeck_CardCopy(&result->kicker1, kicker);
-            } else {
-               LibDeck_CardCopy(&result->kicker2, kicker);
-            }
             break;
          case 2:
-            // We use the second kicker for three/four of a kind
             result->handValue += LIBDECK_POKER_HAND_THREE;
-            LibDeck_CardCopy(&result->kicker2, kicker);
             break;
          case 3:
             result->handValue += LIBDECK_POKER_HAND_FOUR;
-            LibDeck_CardCopy(&result->kicker2, kicker);
             break;
+      }
+
+      for (tmpCard = sameCard - numHits; tmpCard != sameCard + 1; tmpCard++) {
+         LibDeck_ColAddCard(kickerCol, tmpCard);
       }
    }
 }
@@ -79,9 +77,9 @@ LibDeckPokerResult *
 LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
 {
    LibDeckPokerResult *result;
-   int storedValue, numHits;
-   LibDeckCard *currentCard, storedCard;
-   LibDeckCol *copyCol;
+   int storedValue, numHits, i, found;
+   LibDeckCard *currentCard, *searchCard, storedCard;
+   LibDeckCol *copyCol, *kickerCol;
 
    if (hand->numCards != 5) {
       printf("ERROR: Can not classify, collection size %d != 5\n", hand->numCards);
@@ -93,6 +91,7 @@ LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
    // Take a copy of the input collection since we will be modifying it w/ sort
    copyCol = LibDeck_ColClone(hand);
 
+   // Sort the collection for comparison purposes
    LibDeck_ColSort(copyCol);
 
    // Flush check
@@ -122,47 +121,75 @@ LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
          break;
       }
    }
-   // Special case A as 1 in [2,3,4,5,A]
+
+   // Reverse the collection from this point on
+   LibDeck_ColReverse(copyCol);
+
+   // Special case A as 1 : [A,5,4,3,2] -> [5,4,3,2,1]
    if ((numHits == 4) &&
-       (LibDeck_ColGetFirst(copyCol)->value == LIBDECK_CARD_VALUE_TWO) &&
-       (LibDeck_ColGetLast(copyCol)->value == LIBDECK_CARD_VALUE_ACE)) {
+       (LibDeck_ColGetLast(copyCol)->value == LIBDECK_CARD_VALUE_TWO) &&
+       (LibDeck_ColGetNth(copyCol, 3)->value == LIBDECK_CARD_VALUE_THREE) &&
+       (LibDeck_ColGetFirst(copyCol)->value == LIBDECK_CARD_VALUE_ACE)) {
       numHits = 5;
-      // kicker special cased to the 5 as the highest card of the straight
-      LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetNth(copyCol, 3));
+
+      for (i = 4; i > 0; i--) {
+         LibDeck_ColSwapCards(copyCol, 0, i);
+      }
+      LibDeck_ColGetLast(copyCol)->value = LIBDECK_CARD_VALUE_ONE;
    }
    if (numHits == 5) {
       result->handValue += LIBDECK_POKER_HAND_STRAIGHT;
-      if (result->kicker1.value == 0) {
-         // highest card of the straight
-         LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetLast(copyCol));
-      }
    }
 
    // Straight, Flush, or Straight+Flush at this point is the final result
    if (result->handValue > 0) {
+      kickerCol = LibDeck_ColClone(copyCol);
       goto done;
    }
 
    // Linear search for same card values
+   kickerCol = LibDeck_ColNew(5);
    memset(&storedCard, 0, sizeof(storedCard));
    numHits = 0;
    LIBDECK_COL_FORALL(copyCol, currentCard) {
       if (currentCard->value == storedCard.value) {
          numHits++;
       } else {
-         LibDeckPokerUpdateHits(numHits, &storedCard, result);
+         LibDeckPokerUpdateHits(numHits, currentCard - 1, kickerCol, result);
          LibDeck_CardCopy(&storedCard, currentCard);
          numHits = 0;
       }
    }
-   LibDeckPokerUpdateHits(numHits, &storedCard, result);
+   LibDeckPokerUpdateHits(numHits, currentCard - 1, kickerCol, result);
 
-   // If we got good ol' nothin update kicker with largest card
-   if (result->handValue == 0) {
-      LibDeck_CardCopy(&result->kicker1, LibDeck_ColGetLast(copyCol));
+   // For full house we need to fix kickers like [A,A,3,3,3] -> [3,3,3,A,A]
+   if (result->handValue == LIBDECK_POKER_HAND_FULL_HOUSE) {
+      if (LibDeck_ColGetNth(kickerCol, 0)->value >
+          LibDeck_ColGetNth(kickerCol, 2)->value) {
+         LibDeck_ColReverse(kickerCol);
+      }
+   }
+
+   // Add cards not featured in the kicker to it. (covers nothing case too)
+   found = 0;
+   LIBDECK_COL_FORALL(copyCol, currentCard) {
+      LIBDECK_COL_FORALL(kickerCol, searchCard) {
+         if ((searchCard->value == currentCard->value) && 
+             (searchCard->suite == currentCard->suite)) {
+            found = 1;
+            break;
+         }
+      }
+
+      if (!found) {
+         LibDeck_ColAddCard(kickerCol, currentCard);
+      }
+
+      found = 0;
    }
 
 done:
+   result->kickerCol = kickerCol;
 
    LibDeck_ColFree(copyCol);
    return result;
@@ -183,7 +210,7 @@ int
 LibDeck_PokerCompare(LibDeckPokerResult *result1, // IN: First result to compare
                      LibDeckPokerResult *result2) // IN: Second result to compare
 {
-   int comp;
+   int comp, i;
 
    if (result1->handValue != result2->handValue) {
       if (result1->handValue > result2->handValue) {
@@ -193,34 +220,32 @@ LibDeck_PokerCompare(LibDeckPokerResult *result1, // IN: First result to compare
       }
    }
 
-   // Equal hand values, need to compare kickers selectively
-   switch (result1->handValue) {
-      case LIBDECK_POKER_HAND_NOTHING:
-      case LIBDECK_POKER_HAND_PAIR:
-      case LIBDECK_POKER_HAND_STRAIGHT:
-      case LIBDECK_POKER_HAND_STR_FLUSH:
-         return LibDeck_CardCompare(&result1->kicker1, 
-                                    &result2->kicker1);
-         break;
-      case LIBDECK_POKER_HAND_THREE:
-      case LIBDECK_POKER_HAND_FOUR:
-         return LibDeck_CardCompare(&result1->kicker2, 
-                                    &result2->kicker2);
-         break;
-      case LIBDECK_POKER_HAND_TWO_PAIR:
-      case LIBDECK_POKER_HAND_FULL_HOUSE:
-         comp = LibDeck_CardCompare(&result1->kicker2, 
-                                    &result2->kicker2);
-
-         if (comp != 0) { // if large kicker is not equal we're done
-            return comp;
-         }
-
-         return LibDeck_CardCompare(&result1->kicker1, 
-                                    &result2->kicker1);
-         break;
+   // Equal hand values, need to compare kickers
+   for (i = 0; i < 5; i++) {
+      comp = LibDeck_CardCompare(LibDeck_ColGetNth(result1->kickerCol, i),
+                                 LibDeck_ColGetNth(result2->kickerCol, i));
+      if (comp != 0) {
+         return comp;
+      }
    }
 
-   // Flush falls through
    return 0;
+}
+
+/*
+ * LibDeck_PokerFreeResult --
+ *
+ *    Free's the given result.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
+void
+LibDeck_PokerFreeResult(LibDeckPokerResult *result) // IN: Result to free
+{
+   free(result->kickerCol);
+   free(result);
 }

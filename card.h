@@ -32,7 +32,8 @@ typedef enum LibDeckCardSuite {
 
 /* Card face values */
 typedef enum LibDeckCardValue {
-   LIBDECK_CARD_VALUE_TWO=2,
+   LIBDECK_CARD_VALUE_ONE=1, // Only used for ACE -> 1 conversions
+   LIBDECK_CARD_VALUE_TWO,
    LIBDECK_CARD_VALUE_THREE,
    LIBDECK_CARD_VALUE_FOUR,
    LIBDECK_CARD_VALUE_FIVE,

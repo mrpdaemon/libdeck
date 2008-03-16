@@ -245,7 +245,7 @@ LibDeck_ColPopN(LibDeckCol *collection, // IN: Collection to pop from
 }
 
 /*
- * LibDeckColSwapCards --
+ * LibDeck_ColSwapCards --
  *
  *    Internal method to swap two cards from a collection.
  *
@@ -256,9 +256,9 @@ LibDeck_ColPopN(LibDeckCol *collection, // IN: Collection to pop from
  *    None.
  */
 void
-LibDeckColSwapCards(LibDeckCol *collection, // IN: Collection to swap from
-                    int c1,                 // IN: Index of first card to swap
-                    int c2)                 // IN: Index of second card to swap
+LibDeck_ColSwapCards(LibDeckCol *collection, // IN: Collection to swap from
+                     int c1,                 // IN: Index of first card to swap
+                     int c2)                 // IN: Index of second card to swap
 {
    LibDeckCard tmpCard;
 
@@ -292,7 +292,7 @@ LibDeck_ColShuffle(LibDeckCol *collection,  // IN: Collection to shuffle
    int i;
 
    for (i = 0; i < numMoves; i++) {
-      LibDeckColSwapCards(collection,
+      LibDeck_ColSwapCards(collection,
                           LibDeck_Random(collection->numCards),
                           LibDeck_Random(collection->numCards));
    }
@@ -318,9 +318,30 @@ LibDeck_ColSort(LibDeckCol *collection) // IN: Collection to sort
       for (j = i + 1; j < collection->numCards; j++) {
          if (LibDeck_CardCompare(LibDeck_ColGetNth(collection, i),
                                  LibDeck_ColGetNth(collection, j)) < 0) {
-            LibDeckColSwapCards(collection, i, j);
+            LibDeck_ColSwapCards(collection, i, j);
          }
       }
+   }
+}
+
+/*
+ * LibDeck_ColReverse --
+ *
+ *    Reverses the given collection.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
+void
+LibDeck_ColReverse(LibDeckCol *collection) // IN: Collection to reverse
+{
+	int i;
+
+   for (i = 0; i < (collection->numCards / 2); i++) {
+      LibDeck_ColSwapCards(collection, i, collection->numCards - (i + 1));
    }
 }
 

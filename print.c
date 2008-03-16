@@ -48,6 +48,7 @@ LibDeckPrintCardValue(int value) // IN: Card value to print
       case LIBDECK_CARD_VALUE_KING:
          printf("K");
          break;
+      case LIBDECK_CARD_VALUE_ONE:
       case LIBDECK_CARD_VALUE_ACE:
          printf("A");
          break;
@@ -151,47 +152,54 @@ void LibDeck_PrintPokerResult(LibDeckPokerResult *result) // IN: Result to print
    switch (result->handValue) {
       case LIBDECK_POKER_HAND_PAIR:
          printf("Pair of ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf("'s");
          break;
       case LIBDECK_POKER_HAND_TWO_PAIR:
          printf("Two Pair ");
-         LibDeckPrintCardValue(result->kicker2.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf(" and ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 2)->value);
          break;
       case LIBDECK_POKER_HAND_THREE:
          printf("Three of a kind ");
-         LibDeckPrintCardValue(result->kicker2.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf("'s");
          break;
       case LIBDECK_POKER_HAND_STRAIGHT:
          printf("Straight with ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf(" high");
          break;
       case LIBDECK_POKER_HAND_FLUSH:
-         printf("Flush");
+         printf("Flush ");
+         //XXX: Long suite name "Diamonds"
+         LibDeckPrintCardSuite(LibDeck_ColGetNth(result->kickerCol, 0)->suite);
+         printf(" with ");
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
+         printf(" high");
          break;
       case LIBDECK_POKER_HAND_FULL_HOUSE:
          printf("Full House ");
-         LibDeckPrintCardValue(result->kicker2.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf(" and ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 3)->value);
          break;
       case LIBDECK_POKER_HAND_FOUR:
          printf("Four of a kind ");
-         LibDeckPrintCardValue(result->kicker2.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf("'s");
          break;
       case LIBDECK_POKER_HAND_STR_FLUSH:
-         printf("Straight Flush with ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         printf("Straight Flush ");
+         //XXX: Long suite name "Diamonds"
+         LibDeckPrintCardSuite(LibDeck_ColGetNth(result->kickerCol, 0)->suite);
+         printf(" with ");
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf(" high");
          break;
       default:
-         printf("nothing with ");
-         LibDeckPrintCardValue(result->kicker1.value);
+         LibDeckPrintCardValue(LibDeck_ColGetNth(result->kickerCol, 0)->value);
          printf(" high");
          break;
    }

@@ -35,13 +35,14 @@
 // Hand classification result structure
 typedef struct LibDeckPokerResult {
    int handValue;
-   LibDeckCard kicker1;
-   LibDeckCard kicker2;
+   LibDeckCol *kickerCol;
 } LibDeckPokerResult;
 
 LibDeckPokerResult   *LibDeck_PokerClassify(LibDeckCol *);
 
 int      LibDeck_PokerCompare(LibDeckPokerResult *, 
                               LibDeckPokerResult *);
+
+void     LibDeck_PokerFreeResult(LibDeckPokerResult *);
 
 #endif /* _LIBDECK_POKER_H */

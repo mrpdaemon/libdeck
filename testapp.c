@@ -97,8 +97,8 @@ main(int argc, char **argv)
 
       LibDeck_ColFree(hand1);
       LibDeck_ColFree(hand2);
-      free(result1);
-      free(result2);
+      LibDeck_PokerFreeResult(result1);
+      LibDeck_PokerFreeResult(result2);
    }
 
    printf("\nRemaining = "); LibDeck_PrintCol(myDeck);printf("\n");
