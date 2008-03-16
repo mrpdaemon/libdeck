@@ -20,6 +20,7 @@
 
 #include "card.h"
 #include "collection.h"
+#include "combination.h"
 #include "deck.h"
 #include "poker.h"
 #include "print.h"

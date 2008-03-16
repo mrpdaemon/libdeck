@@ -2,7 +2,7 @@ CC=gcc
 AR=ar
 CFLAGS=-g -Wall -Werror
 
-LIBOBJS=card.o collection.o deck.o libdeck.o poker.o print.o util.o
+LIBOBJS=card.o collection.o combination.o deck.o libdeck.o poker.o print.o util.o
 LIBDEFS=-DHAVE_DEVRANDOM
 TESTDEFS=
 

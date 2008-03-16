@@ -88,8 +88,7 @@ LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
       return NULL;
    }
 
-   result = (LibDeckPokerResult *) malloc(sizeof(LibDeckPokerResult));
-   memset(result, 0, sizeof(LibDeckPokerResult));
+   result = (LibDeckPokerResult *) calloc(1, sizeof(LibDeckPokerResult));
 
    // Take a copy of the input collection since we will be modifying it w/ sort
    copyCol = LibDeck_ColClone(hand);

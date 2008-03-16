@@ -38,6 +38,8 @@ LibDeckCol *  LibDeck_ColClone(LibDeckCol *);
 int           LibDeck_ColAddCard(LibDeckCol *, LibDeckCard *);
 int           LibDeck_ColPop(LibDeckCol *, LibDeckCard *);
 LibDeckCol *  LibDeck_ColPopN(LibDeckCol *, int);
+int           LibDeck_ColDiscardN(LibDeckCol *, int, int);
+int           LibDeck_ColAppend(LibDeckCol **, LibDeckCol *);
 
 LibDeckCard * LibDeck_ColGetFirst(LibDeckCol *);
 LibDeckCard * LibDeck_ColGetLast(LibDeckCol *);

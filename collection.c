@@ -40,7 +40,7 @@ LibDeck_ColNew(int maxSize) // IN: Maximum size of the collection
       return NULL;
    }
 
-   LibDeckCol *result = malloc(sizeof(LibDeckCol) + 
+   LibDeckCol *result = calloc(1, sizeof(LibDeckCol) + 
                                maxSize * sizeof(LibDeckCard));
    if (!result) {
       printf("ERROR: Failed to allocate collection, out of memory\n");
@@ -322,4 +322,78 @@ LibDeck_ColSort(LibDeckCol *collection) // IN: Collection to sort
          }
       }
    }
+}
+
+/*
+ * LibDeck_ColDiscardN --
+ *
+ *    Discard N cards from top of the given collection.
+ *
+ * Results:
+ *    0 on success, -1 on error.
+ *
+ * Side effects:
+ *    None.
+ */
+int
+LibDeck_ColDiscardN(LibDeckCol *collection, // IN: Collection to sort
+                    int n,                  // IN: Number of cards to discard
+                    int zero)               // IN: Whether to zero out card data
+{
+   if (n > collection->numCards) {
+      printf("ERROR: Can not discard %d cards, collection only has %d\n",
+             n, collection->numCards);
+      return -1;
+   }
+
+   collection->numCards -= n;
+
+   if (zero) {
+      memset(LibDeck_ColGetNth(collection, collection->numCards),
+             0, n * sizeof(LibDeckCard));
+   }
+
+   return 0;
+}
+
+/*
+ * LibDeck_ColAppend --
+ *
+ *    Append the contents of a collection into another collection.
+ *    //XXX: memory notes
+ *
+ * Results:
+ *    0 on success, -1 on error.
+ *
+ * Side effects:
+ *    None.
+ */
+int
+LibDeck_ColAppend(LibDeckCol **appendTo,  // IN: Collection to append to
+                  LibDeckCol *appendFrom) // IN: Collection to append from
+{
+   LibDeckCol *tmpAppendTo = *appendTo;
+
+   if ((tmpAppendTo->maxSize - tmpAppendTo->numCards) < appendFrom->numCards) {
+      // Need to reallocate
+      tmpAppendTo = realloc(tmpAppendTo, 
+                            sizeof(LibDeckCol) +
+                            (tmpAppendTo->numCards + appendFrom->numCards) * 
+                            sizeof(LibDeckCard));
+
+      if (tmpAppendTo == NULL) {
+         printf("ERROR: Failed to realloc new collection\n");
+         return -1;
+      }
+
+      *appendTo = tmpAppendTo;
+   }
+
+   memcpy(LibDeck_ColGetNth(tmpAppendTo, tmpAppendTo->numCards),
+          LibDeck_ColGetFirst(appendFrom),
+          appendFrom->numCards * sizeof(LibDeckCard));
+
+   tmpAppendTo->numCards += appendFrom->numCards;
+
+   return 0;
 }

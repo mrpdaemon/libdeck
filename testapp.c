@@ -43,6 +43,7 @@ main(int argc, char **argv)
 {
    LibDeckCol *hand1, *hand2, *myDeck;
    LibDeckPokerResult *result1, *result2;
+   LibDeckCombCtx *combCtx;
    int i, compare;
 
    LibDeck_InitLibrary();
@@ -58,7 +59,22 @@ main(int argc, char **argv)
 
    printf("\n\nShuffled = "); LibDeck_PrintCol(myDeck); printf("\n");
 
-   for (i = 0; i < 5; i++) {
+   // Grab 6 cards and display all possible combinations of 4 from it
+   hand1 = LibDeck_ColPopN(myDeck, 6);
+   printf("\nCollection = "); LibDeck_PrintCol(hand1);
+   hand2 = LibDeck_ColNew(4);
+   combCtx = LibDeck_CombNew(hand1, 4, 1);
+   i = 0;
+   while (LibDeck_CombGetNext(combCtx, hand2)) {
+      printf("\nCombination %d = ",++i); LibDeck_PrintCol(hand2);
+      LibDeck_ColDiscardN(hand2, 4, 1);
+   }
+   LibDeck_ColFree(hand1);
+   LibDeck_ColFree(hand2);
+   printf("\n");
+
+   // 4 iterations of 5 cards each hand, compare 2 poker hands
+   for (i = 0; i < 4; i++) {
       hand1 = LibDeck_ColPopN(myDeck, 5);
       hand2 = LibDeck_ColPopN(myDeck, 5);
 
