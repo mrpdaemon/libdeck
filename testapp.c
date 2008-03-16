@@ -3,13 +3,52 @@
 
 #include "libdeck.h"
 
-int main(int argc, char **argv)
+#ifdef SUITE_COMP
+#define SuiteComp(suite, value) \
+   switch (suite) { \
+      case LIBDECK_CARD_SUITE_CLUB: \
+         value += 1; \
+         break; \
+      case LIBDECK_CARD_SUITE_DIAMOND: \
+         value += 2; \
+         break; \
+      case LIBDECK_CARD_SUITE_HEART: \
+         value += 3; \
+         break; \
+      case LIBDECK_CARD_SUITE_SPADE: \
+         value += 4; \
+         break; \
+   }
+
+int
+mySuiteCompFn(LibDeckCardSuite s1, LibDeckCardSuite s2)
+{
+   int value1 = 0, value2 = 0;
+
+   SuiteComp(s1, value1);
+   SuiteComp(s2, value2);
+
+   if (value1 > value2) {
+      return -1;
+   } else if (value1 < value2) {
+      return 1;
+   }
+
+   return 0;
+}
+#endif /* SUITE_COMP */
+
+int 
+main(int argc, char **argv)
 {
    LibDeckCol *hand1, *hand2, *myDeck;
    LibDeckPokerResult *result1, *result2;
    int i, compare;
 
    LibDeck_InitLibrary();
+#ifdef SUITE_COMP
+   LibDeck_RegisterSuiteCompFn(mySuiteCompFn);
+#endif /* SUITE_COMP */
 
    myDeck = LibDeck_DeckNew();
 

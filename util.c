@@ -64,6 +64,7 @@ LibDeckSeedRandom(void)
 
    if (bytesRead != sizeof(int)) {
       printf("ERROR: Could not read %d bytes of random data\n", sizeof(int));
+      close(fdRandom);
       return -1;
    }
 

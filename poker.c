@@ -170,30 +170,6 @@ done:
 }
 
 /*
- * LibDeckPokerIntCompare --
- *
- *    Internal method to compare two integers.
- *
- * Results:
- *    0 if equal, -1 if a>b , 1 if b>a
- *
- * Side effects:
- *    None.
- */
-static inline int
-LibDeckPokerIntCompare(int a, // IN: First integer to compare
-                       int b) // IN: Second integer to compare
-{
-   if (a > b) {
-      return -1;
-   } else if (a < b) {
-      return 1;
-   }
-
-   return 0;
-}
-
-/*
  * LibDeck_PokerCompare --
  *
  *    Given two hand results compare them to determine which hand wins.
@@ -224,25 +200,25 @@ LibDeck_PokerCompare(LibDeckPokerResult *result1, // IN: First result to compare
       case LIBDECK_POKER_HAND_PAIR:
       case LIBDECK_POKER_HAND_STRAIGHT:
       case LIBDECK_POKER_HAND_STR_FLUSH:
-         return LibDeckPokerIntCompare(result1->kicker1.value, 
-                                       result2->kicker1.value);
+         return LibDeck_CardCompare(&result1->kicker1, 
+                                    &result2->kicker1);
          break;
       case LIBDECK_POKER_HAND_THREE:
       case LIBDECK_POKER_HAND_FOUR:
-         return LibDeckPokerIntCompare(result1->kicker2.value, 
-                                       result2->kicker2.value);
+         return LibDeck_CardCompare(&result1->kicker2, 
+                                    &result2->kicker2);
          break;
       case LIBDECK_POKER_HAND_TWO_PAIR:
       case LIBDECK_POKER_HAND_FULL_HOUSE:
-         comp = LibDeckPokerIntCompare(result1->kicker2.value, 
-                                        result2->kicker2.value);
+         comp = LibDeck_CardCompare(&result1->kicker2, 
+                                    &result2->kicker2);
 
          if (comp != 0) { // if large kicker is not equal we're done
             return comp;
          }
 
-         return LibDeckPokerIntCompare(result1->kicker1.value, 
-                                       result2->kicker1.value);
+         return LibDeck_CardCompare(&result1->kicker1, 
+                                    &result2->kicker1);
          break;
    }
 

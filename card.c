@@ -20,6 +20,9 @@
 #include "card.h"
 #include "util.h"
 
+/* Registered suite comparison function */
+static LibDeckSuiteCompFn suiteCompFn = NULL;
+
 /*
  * LibDeck_CardInit --
  *
@@ -59,6 +62,50 @@ LibDeck_CardInitRandom(LibDeckCard *card) // OUT: Card buffer to initialize
 }
 
 /*
+ * LibDeck_RegisterSuiteCompFn --
+ *
+ *    Register a function to compare two suites for purposes of tiebreaking
+ *    on equal card values. By default this function is NULL, meaning that
+ *    the library does not take suite into account for determining card
+ *    ordering.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ */
+void
+LibDeck_RegisterSuiteCompFn(LibDeckSuiteCompFn compFn) // IN: Function to register
+{
+   suiteCompFn = compFn;
+}
+
+/*
+ * LibDeck_SuiteCompare --
+ *
+ *    Compare two given suites. This is a wrapper that calls the registered
+ *    suite comparison function if one exists, or returns 0.
+ *
+ * Results:
+ *    0 if equal, -1 if c1 > c2, 1 if c2 > c1. If not suite comparison function
+ *    is registered 0 is returned.
+ *
+ * Side effects:
+ *    None.
+ */
+int
+LibDeck_SuiteCompare(LibDeckCardSuite s1, // IN: First suite to compare
+                     LibDeckCardSuite s2) // IN: Second suite to compare
+{
+   if (suiteCompFn == NULL) {
+      return 0;
+   }
+
+   return suiteCompFn(s1, s2);
+}
+
+/*
  * LibDeck_CardCompare --
  *
  *    Compare two given cards.
@@ -79,6 +126,10 @@ LibDeck_CardCompare(LibDeckCard *c1, // IN: First card to compare
 
    if (c1->value < c2->value) {
       return 1;
+   }
+
+   if (suiteCompFn != NULL) {
+      return suiteCompFn(c1->suite, c2->suite);
    }
 
    return 0;
