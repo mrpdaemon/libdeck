@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "collection.h"
+#include "combination.h"
 #include "poker.h"
 
 /*
@@ -248,4 +249,65 @@ LibDeck_PokerFreeResult(LibDeckPokerResult *result) // IN: Result to free
 {
    free(result->kickerCol);
    free(result);
+}
+
+/*
+ * LibDeck_PokerTexasGetBest --
+ *
+ *    Given a 2 card hand and a 5 card community returns the best possible
+ *    hand of 5 in form of a result.
+ *
+ * Results:
+ *    Pointer to result, NULL on error.
+ *
+ * Side effects:
+ *    None.
+ */
+LibDeckPokerResult *
+LibDeck_PokerTexasGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
+                          LibDeckCol *community) // IN: Community (5 cards)
+{
+   LibDeckPokerResult *bestResult = NULL, *currentResult;
+   LibDeckCombCtx *combCtx;
+   LibDeckCol *combineCol, *handBuf;
+
+   if (hand->numCards != 2) {
+      printf("ERROR: Invalid number of hand cards %d != 2\n", hand->numCards);
+      return NULL;
+   }
+
+   if (community->numCards != 5) {
+      printf("ERROR: Invalid number of community cards %d != 5\n", 
+             community->numCards);
+      return NULL;
+   }
+
+   // Get it all in one collection
+   combineCol = LibDeck_ColNew(7);
+   LibDeck_ColAppend(&combineCol, community);
+   LibDeck_ColAppend(&combineCol, hand);
+
+   // Get combinations going on
+   handBuf = LibDeck_ColNew(5);
+   combCtx = LibDeck_CombNew(combineCol, 5, 1);
+   while (LibDeck_CombGetNext(combCtx, handBuf)) {
+      currentResult = LibDeck_PokerClassify(handBuf); 
+      if (bestResult == NULL) {
+         bestResult = currentResult;
+      } else {
+         if (LibDeck_PokerCompare(currentResult, bestResult) < 0) {
+            LibDeck_PokerFreeResult(bestResult);
+            bestResult = currentResult;
+         } else {
+            LibDeck_PokerFreeResult(currentResult);
+         }
+      }
+      LibDeck_ColDiscardN(handBuf, 5, 1);
+   }
+
+   LibDeck_ColFree(handBuf);
+   LibDeck_ColFree(combineCol);
+   LibDeck_CombDestroy(combCtx);
+
+   return bestResult;
 }

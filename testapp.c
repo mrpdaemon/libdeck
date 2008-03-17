@@ -41,7 +41,7 @@ mySuiteCompFn(LibDeckCardSuite s1, LibDeckCardSuite s2)
 int 
 main(int argc, char **argv)
 {
-   LibDeckCol *hand1, *hand2, *myDeck;
+   LibDeckCol *hand1, *hand2, *myDeck, *community;
    LibDeckPokerResult *result1, *result2;
    LibDeckCombCtx *combCtx;
    int i, compare;
@@ -73,32 +73,42 @@ main(int argc, char **argv)
    LibDeck_ColFree(hand2);
    printf("\n");
 
-   // 4 iterations of 5 cards each hand, compare 2 poker hands
-   for (i = 0; i < 4; i++) {
-      hand1 = LibDeck_ColPopN(myDeck, 5);
-      hand2 = LibDeck_ColPopN(myDeck, 5);
+   printf("=========================================================");
+   for (i = 0; i < 5; i++) {
+      // Pick a 2-hand , 5 community and get the best poker hand out of it
+      hand1 = LibDeck_ColPopN(myDeck, 2);
+      printf("\nHand 1 = "); LibDeck_PrintCol(hand1);
 
-      printf("\nHand 1 = "); LibDeck_PrintCol(hand1); printf(" = ");
-      result1 = LibDeck_PokerClassify(hand1);
-      LibDeck_PrintPokerResult(result1);
+      hand2 = LibDeck_ColPopN(myDeck, 2);
+      printf("\nHand 2 = "); LibDeck_PrintCol(hand2);
 
-      printf("\nHand 2 = "); LibDeck_PrintCol(hand2); printf(" = ");
-      result2 = LibDeck_PokerClassify(hand2);
-      LibDeck_PrintPokerResult(result2);
+      community = LibDeck_ColPopN(myDeck, 5);
+      printf("\nCommunity = "); LibDeck_PrintCol(community);
+
+      result1 = LibDeck_PokerTexasGetBest(hand1, community);
+      result2 = LibDeck_PokerTexasGetBest(hand2, community);
 
       compare = LibDeck_PokerCompare(result1, result2);
+
+      printf("\nHand 1 made = "); LibDeck_PrintCol(result1->kickerCol);
+      printf(" = "); LibDeck_PrintPokerResult(result1);
+      printf("\nHand 2 made = "); LibDeck_PrintCol(result2->kickerCol);
+      printf(" = "); LibDeck_PrintPokerResult(result2);
+
       if (compare < 0) {
          printf("\nHand 1 wins!\n");
       } else if (compare > 0) {
          printf("\nHand 2 wins!\n");
       } else {
-         printf("\nDRAW!\n");
+         printf("\nA draw!\n");
       }
 
-      LibDeck_ColFree(hand1);
-      LibDeck_ColFree(hand2);
+      printf("=========================================================");
+
       LibDeck_PokerFreeResult(result1);
       LibDeck_PokerFreeResult(result2);
+      LibDeck_ColFree(hand1);
+      LibDeck_ColFree(hand2);
    }
 
    printf("\nRemaining = "); LibDeck_PrintCol(myDeck);printf("\n");

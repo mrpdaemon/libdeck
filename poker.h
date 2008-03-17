@@ -45,4 +45,6 @@ int      LibDeck_PokerCompare(LibDeckPokerResult *,
 
 void     LibDeck_PokerFreeResult(LibDeckPokerResult *);
 
+LibDeckPokerResult *LibDeck_PokerTexasGetBest(LibDeckCol *, LibDeckCol *);
+
 #endif /* _LIBDECK_POKER_H */
