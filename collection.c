@@ -293,8 +293,8 @@ LibDeck_ColShuffle(LibDeckCol *collection,  // IN: Collection to shuffle
 
    for (i = 0; i < numMoves; i++) {
       LibDeck_ColSwapCards(collection,
-                          LibDeck_Random(collection->numCards),
-                          LibDeck_Random(collection->numCards));
+                          LibDeck_UtilRandom(collection->numCards),
+                          LibDeck_UtilRandom(collection->numCards));
    }
 }
 

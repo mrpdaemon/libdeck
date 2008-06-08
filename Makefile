@@ -1,5 +1,6 @@
 CC=gcc
 AR=ar
+STRIP=strip
 CFLAGS=-g -Wall -Werror
 
 LIBOBJS=card.o collection.o combination.o deck.o libdeck.o poker.o print.o util.o
@@ -16,6 +17,7 @@ libdeck.a: ${LIBOBJS}
 
 testapp: testapp.c libdeck.a
 	${CC} ${CFLAGS} ${TESTDEFS} testapp.c -o testapp libdeck.a
+	${STRIP} testapp
 
 clean:
-	rm *.o libdeck.a testapp
+	rm -f *.o libdeck.a testapp

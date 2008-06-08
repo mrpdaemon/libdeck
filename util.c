@@ -15,26 +15,25 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "util.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+
 #ifdef HAVE_DEVRANDOM
 #include <fcntl.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #else
 #include <time.h>
 #endif /* HAVE_DEVRANDOM */
 
 /* Flag to indicate whether random subsystem is initialized */
-int randomInitialized = 0;
+static int randomInitialized = 0;
 
+#ifdef RESEED_RANDOM
 /* Counter to determine whether we should re-seed the generator */
-#define RESEED_EVERY_N 10000
-int reseedCounter;
-
-#ifdef HAVE_DEVRANDOM
-/* Random device location */
-#define DEVRANDOM "/dev/urandom"
-#endif /* HAVE_DEVRANDOM */
+static int reseedCounter;
+#endif /* RESEED_RANDOM */
 
 /*
  * LibDeckSeedRandom --
@@ -47,8 +46,8 @@ int reseedCounter;
  * Side effects:
  *    None.
  */
-int
-LibDeckSeedRandom(void)
+static int
+LibDeckUtilSeedRandom(void)
 {
 #ifdef HAVE_DEVRANDOM
    int fdRandom, randomInt, bytesRead;
@@ -73,12 +72,12 @@ LibDeckSeedRandom(void)
    close(fdRandom);
 #else
    srand(time(NULL));
-#endif /* HAVE_DEVRANDOM */
+#endif /* DEVRANDOM */
 
    return 0;
 }
 /*
- * LibDeck_InitRandom --
+ * LibDeck_UtilInitRandom --
  *
  *    Initialize the random subsystem.
  *
@@ -89,7 +88,7 @@ LibDeckSeedRandom(void)
  *    None.
  */
 int
-LibDeck_InitRandom(void)
+LibDeck_UtilInitRandom(void)
 {
    int result;
 
@@ -98,19 +97,21 @@ LibDeck_InitRandom(void)
       return -1;
    }
 
-   result = LibDeckSeedRandom();
+   result = LibDeckUtilSeedRandom();
    if (result != 0) {
       return result;
    }
 
+#ifdef RESEED_RANDOM
    reseedCounter = 0;
+#endif /* RESEED_RANDOM */
    randomInitialized = 1;
 
    return 0;
 }
 
 /*
- * LibDeck_Random --
+ * LibDeck_UtilRandom --
  *
  *    Returns a random number modulo 'modulus'.
  *
@@ -121,24 +122,26 @@ LibDeck_InitRandom(void)
  *    None.
  */
 int
-LibDeck_Random(int modulus) // IN: modulus to apply to random result
+LibDeck_UtilRandom(int modulus) // IN: modulus to apply to random result
 {
    if (!randomInitialized) {
       return -1;
    }
 
-   if (reseedCounter == RESEED_EVERY_N) {
-      LibDeckSeedRandom();
+#ifdef RESEED_RANDOM
+   if (reseedCounter == LIBDECK_UTIL_RAND_RESEED) {
+      LibDeckUtilSeedRandom();
       reseedCounter = 0;
    } else {
       reseedCounter++;
    }
+#endif /* RESEED_RANDOM */
 
    return random() % modulus;
 }
 
 /*
- * LibDeck_CloseRandom --
+ * LibDeck_UtilCloseRandom --
  *
  *    Close the random subsystem.
  *
@@ -149,8 +152,10 @@ LibDeck_Random(int modulus) // IN: modulus to apply to random result
  *    None.
  */
 void
-LibDeck_CloseRandom(void)
+LibDeck_UtilCloseRandom(void)
 {
+#ifdef RESEED_RANDOM
    reseedCounter = 0;
+#endif /* RESEED_RANDOM */
    randomInitialized = 0;
 }

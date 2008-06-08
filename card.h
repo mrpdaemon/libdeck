@@ -58,16 +58,18 @@ typedef struct LibDeckCard {
    LibDeckCardValue value;
 } LibDeckCard;
 
+#ifdef SUITE_COMPARE
 /* Prototype for suite comparison function */
 typedef int (*LibDeckSuiteCompFn) (LibDeckCardSuite, LibDeckCardSuite);
+
+int  LibDeck_SuiteCompare(LibDeckCardSuite, LibDeckCardSuite);
+void LibDeck_RegisterSuiteCompFn(LibDeckSuiteCompFn);
+#endif
 
 void LibDeck_CardInit(LibDeckCard *, LibDeckCardSuite, LibDeckCardValue);
 void LibDeck_CardInitRandom(LibDeckCard *);
 
 void LibDeck_CardCopy(LibDeckCard *, LibDeckCard *);
-
 int  LibDeck_CardCompare(LibDeckCard *, LibDeckCard *);
-int  LibDeck_SuiteCompare(LibDeckCardSuite, LibDeckCardSuite);
-void LibDeck_RegisterSuiteCompFn(LibDeckSuiteCompFn);
 
 #endif /* _LIBDECK_CARD_H */

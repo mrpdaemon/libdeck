@@ -18,8 +18,20 @@
 #ifndef _LIBDECK_UTIL_H
 #define _LIBDECK_UTIL_H
 
-int  LibDeck_InitRandom(void);
-int  LibDeck_Random(int);
-void LibDeck_CloseRandom(void);
+#ifdef RESEED_RANDOM
+/* Reseed the random number generator after this many random numbers */
+#define LIBDECK_UTIL_RAND_RESEED 10000
+#endif /* RESEED_RANDOM */
+
+#ifdef HAVE_DEVRANDOM
+#ifndef DEVRANDOM
+/* Random device location */
+#define DEVRANDOM "/dev/urandom"
+#endif /* DEVRANDOM */
+#endif /* HAVE_DEVRANDOM */
+
+int  LibDeck_UtilInitRandom(void);
+int  LibDeck_UtilRandom(int);
+void LibDeck_UtilCloseRandom(void);
 
 #endif /*_LIBDECK_UTIL_H */

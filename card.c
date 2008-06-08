@@ -20,8 +20,10 @@
 #include "card.h"
 #include "util.h"
 
+#ifdef SUITE_COMPARE
 /* Registered suite comparison function */
 static LibDeckSuiteCompFn suiteCompFn = NULL;
+#endif
 
 /*
  * LibDeck_CardInit --
@@ -57,10 +59,13 @@ LibDeck_CardInit(LibDeckCard *card,      // OUT: Card buffer to initialize
 void
 LibDeck_CardInitRandom(LibDeckCard *card) // OUT: Card buffer to initialize
 {
-   card->suite = LibDeck_Random(LIBDECK_CARD_NUM_SUITES) + LIBDECK_CARD_SUITE_MIN;
-   card->value = LibDeck_Random(LIBDECK_CARD_NUM_VALUES) + LIBDECK_CARD_VALUE_MIN;
+   card->suite = LibDeck_UtilRandom(LIBDECK_CARD_NUM_SUITES) + 
+                 LIBDECK_CARD_SUITE_MIN;
+   card->value = LibDeck_UtilRandom(LIBDECK_CARD_NUM_VALUES) + 
+                 LIBDECK_CARD_VALUE_MIN;
 }
 
+#ifdef SUITE_COMPARE
 /*
  * LibDeck_RegisterSuiteCompFn --
  *
@@ -104,6 +109,7 @@ LibDeck_SuiteCompare(LibDeckCardSuite s1, // IN: First suite to compare
 
    return suiteCompFn(s1, s2);
 }
+#endif /* SUITE_COMPARE */
 
 /*
  * LibDeck_CardCompare --
@@ -128,9 +134,11 @@ LibDeck_CardCompare(LibDeckCard *c1, // IN: First card to compare
       return 1;
    }
 
+#ifdef SUITE_COMPARE
    if (suiteCompFn != NULL) {
       return suiteCompFn(c1->suite, c2->suite);
    }
+#endif
 
    return 0;
 }

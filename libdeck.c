@@ -31,7 +31,7 @@
 int
 LibDeck_InitLibrary(void)
 {
-   return LibDeck_InitRandom();
+   return LibDeck_UtilInitRandom();
 }
 
 /*
@@ -48,5 +48,5 @@ LibDeck_InitLibrary(void)
 void
 LibDeck_DestroyLibrary(void)
 {
-   LibDeck_CloseRandom();
+   LibDeck_UtilCloseRandom();
 }

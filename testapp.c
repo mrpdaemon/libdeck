@@ -3,7 +3,7 @@
 
 #include "libdeck.h"
 
-#ifdef SUITE_COMP
+#ifdef SUITE_COMPARE
 #define SuiteComp(suite, value) \
    switch (suite) { \
       case LIBDECK_CARD_SUITE_CLUB: \
@@ -36,7 +36,7 @@ mySuiteCompFn(LibDeckCardSuite s1, LibDeckCardSuite s2)
 
    return 0;
 }
-#endif /* SUITE_COMP */
+#endif /* SUITE_COMPARE */
 
 int 
 main(int argc, char **argv)
@@ -47,15 +47,15 @@ main(int argc, char **argv)
    int i, compare;
 
    LibDeck_InitLibrary();
-#ifdef SUITE_COMP
+#ifdef SUITE_COMPARE
    LibDeck_RegisterSuiteCompFn(mySuiteCompFn);
-#endif /* SUITE_COMP */
+#endif /* SUITE_COMPARE */
 
    myDeck = LibDeck_DeckNew();
 
    printf("Deck = "); LibDeck_PrintCol(myDeck);
 
-   LibDeck_ColShuffle(myDeck, 1000 + LibDeck_Random(5000));
+   LibDeck_ColShuffle(myDeck, 1000 + LibDeck_UtilRandom(5000));
 
    printf("\n\nShuffled = "); LibDeck_PrintCol(myDeck); printf("\n");
 

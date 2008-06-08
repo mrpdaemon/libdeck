@@ -32,7 +32,7 @@
  * Side effects:
  *    None.
  */
-void
+static void
 LibDeckPrintCardValue(int value) // IN: Card value to print
 {
    switch (value) {
@@ -68,7 +68,7 @@ LibDeckPrintCardValue(int value) // IN: Card value to print
  * Side effects:
  *    None.
  */
-void
+static void
 LibDeckPrintCardSuite(int suite) // IN: Card suite to print
 {
    switch (suite) {
