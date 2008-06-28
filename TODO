@@ -1,7 +1,5 @@
-New poker method to compute odds of winning given (2,2,2...) (5-X) (rest)
-int *(LibDeckCol **hands, int numHands, LibDeckCol *community, LibDeckCol *rest)
+Thread support, ability to farm PokerCalcOdds to multiple threads
 
-Move to autoconf?
 Build dynamic library?
 API header file?
 

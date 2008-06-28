@@ -252,7 +252,7 @@ LibDeck_PokerFreeResult(LibDeckPokerResult *result) // IN: Result to free
 }
 
 /*
- * LibDeck_PokerTexasGetBest --
+ * LibDeck_PokerGetBest --
  *
  *    Given a 2 card hand and a 5 card community returns the best possible
  *    hand of 5 in form of a result.
@@ -264,7 +264,7 @@ LibDeck_PokerFreeResult(LibDeckPokerResult *result) // IN: Result to free
  *    None.
  */
 LibDeckPokerResult *
-LibDeck_PokerTexasGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
+LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
                           LibDeckCol *community) // IN: Community (5 cards)
 {
    LibDeckPokerResult *bestResult = NULL, *currentResult;
@@ -310,4 +310,87 @@ LibDeck_PokerTexasGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
    LibDeck_CombDestroy(combCtx);
 
    return bestResult;
+}
+
+int
+LibDeck_PokerGetWinner(LibDeckCol **hands,
+                       int numHands,
+                       LibDeckCol *community)
+{
+   int i, winner = 0, draw = 0, compare;
+   //XXX: Sanity checking
+   LibDeckPokerResult **results = calloc(numHands, 
+                                         sizeof(LibDeckPokerResult *));
+
+   // Compute best results
+   for (i = 0; i < numHands; i++) {
+      results[i] = LibDeck_PokerGetBest(hands[i], community);
+   }
+
+   // Find out who won
+   for (i = 1; i < numHands; i++) {
+      compare = LibDeck_PokerCompare(results[winner], results[i]);
+
+      if (compare > 0) { // new result is better
+         draw = 0;
+         winner = i;
+      } else if (compare == 0) { // new result draws best
+         draw = 1;
+      }
+   }
+
+   for (i = 0; i < numHands; i++) {
+      LibDeck_PokerFreeResult(results[i]);
+   }
+   free(results);
+
+   return draw ? -1 : winner;
+}
+
+int
+LibDeck_PokerCalcOdds(LibDeckCol **hands,
+                      int numHands,
+                      LibDeckCol *community,
+                      LibDeckCol *deck,
+                      int *results)
+{
+   int compCount = 0, winner = 0, i = 0;
+   int *winCount = calloc(numHands, sizeof(int));
+   int numFlips = 5 - community->numCards;
+   LibDeckCombCtx *combCtx;
+   LibDeckCol *commBuf;
+
+   if (numFlips <= 0) { // check more things, num hands, deck size etc.
+      //XXX: error
+      return -1;
+   }
+
+   combCtx = LibDeck_CombNew(deck, numFlips, 1);
+   commBuf = LibDeck_ColNew(5);
+ 
+   // Try all possible combinations for remaining flips (5 - N)
+   while (LibDeck_CombGetNext(combCtx, commBuf)) {
+
+      // Add N existing community cards to the (5 - N) from this combination
+      LibDeck_ColAppend(&commBuf, community);
+
+      // Find out who wins
+      winner = LibDeck_PokerGetWinner(hands, numHands, commBuf);
+
+      if (winner >= 0) {
+         winCount[winner]++;
+      }
+
+      LibDeck_ColDiscardN(commBuf, 5, 1);
+      compCount++;
+   }
+
+   for (i = 0; i < numHands; i++) {
+      results[i] = (winCount[i] * 100) / compCount;
+   }
+
+   LibDeck_ColFree(commBuf);
+   LibDeck_CombDestroy(combCtx);
+
+   return 0;
 }
