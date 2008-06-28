@@ -99,10 +99,10 @@ main(int argc, char **argv)
 
    // TURN
    tmpHand = LibDeck_ColPopN(myDeck, 1);
+   printf("\n\nTurn = "); LibDeck_PrintCol(tmpHand);
+   printf("\n");
    LibDeck_ColAppend(&community, tmpHand);
    LibDeck_ColFree(tmpHand);
-   printf("\n\nTurn = "); LibDeck_PrintCol(community);
-   printf("\n");
 
    LibDeck_PokerCalcOdds(hands, 3, community, myDeck, odds);
    printf("Post-turn odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
@@ -110,9 +110,11 @@ main(int argc, char **argv)
 
    // RIVER
    tmpHand = LibDeck_ColPopN(myDeck, 1);
+   printf("\n\nRiver = "); LibDeck_PrintCol(tmpHand);
    LibDeck_ColAppend(&community, tmpHand);
    LibDeck_ColFree(tmpHand);
-   printf("\n\nRiver = "); LibDeck_PrintCol(community);
+
+   printf("\n\nCommunity = "); LibDeck_PrintCol(community);
 
    result1 = LibDeck_PokerGetBest(hand1, community);
    result2 = LibDeck_PokerGetBest(hand2, community);
