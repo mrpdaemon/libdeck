@@ -1,4 +1,6 @@
 Thread support, ability to farm PokerCalcOdds to multiple threads
+   - Ability to background / cancel threads
+Precomputed odds lookup table for all possible 2,2 hands
 
 Build dynamic library?
 API header file?
