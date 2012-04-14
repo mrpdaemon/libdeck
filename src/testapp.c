@@ -55,23 +55,8 @@ main(int argc, char **argv)
    LibDeck_ColShuffle(myDeck, 1000 + LibDeck_UtilRandom(5000));
 
    printf("Shuffled deck = "); LibDeck_PrintCol(myDeck); printf("\n");
-#if 0
-   // Grab 6 cards and display all possible combinations of 4 from it
-   hand1 = LibDeck_ColPopN(myDeck, 6);
-   printf("\nCollection = "); LibDeck_PrintCol(hand1);
-   hand2 = LibDeck_ColNew(4);
-   combCtx = LibDeck_CombNew(hand1, 4, 1);
-   i = 0;
-   while (LibDeck_CombGetNext(combCtx, hand2)) {
-      printf("\nCombination %d = ",++i); LibDeck_PrintCol(hand2);
-      LibDeck_ColDiscardN(hand2, 4, 1);
-   }
-   LibDeck_ColFree(hand1);
-   LibDeck_ColFree(hand2);
-   printf("\n");
-#endif
 
-   // Pick a 2-hand , 5 community and get the best poker hand out of it
+   // Deal 3 hands from the deck
    hands[0] = hand1 = LibDeck_ColPopN(myDeck, 2);
    printf("\nHand 1 = "); LibDeck_PrintCol(hand1);
 
@@ -82,6 +67,7 @@ main(int argc, char **argv)
    printf("\nHand 3 = "); LibDeck_PrintCol(hand3);
    printf("\n");
 
+   // Calculate pre-flop winning odds for the hands
    tmpHand = LibDeck_ColNew(5);
    LibDeck_PokerCalcOdds(hands, 3, tmpHand, myDeck, odds);
    printf("\nPre-flop odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
@@ -93,6 +79,7 @@ main(int argc, char **argv)
    printf("\n\nFlop = "); LibDeck_PrintCol(community);
    printf("\n");
 
+   // Flop odds
    LibDeck_PokerCalcOdds(hands, 3, community, myDeck, odds);
    printf("Post-flop odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
           odds[0], odds[1], odds[2]);
@@ -104,6 +91,7 @@ main(int argc, char **argv)
    LibDeck_ColAppend(&community, tmpHand);
    LibDeck_ColFree(tmpHand);
 
+   // Turn odds
    LibDeck_PokerCalcOdds(hands, 3, community, myDeck, odds);
    printf("Post-turn odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
           odds[0], odds[1], odds[2]);
@@ -116,6 +104,7 @@ main(int argc, char **argv)
 
    printf("\n\nCommunity = "); LibDeck_PrintCol(community);
 
+   // Print what each hand made
    result1 = LibDeck_PokerGetBest(hand1, community);
    result2 = LibDeck_PokerGetBest(hand2, community);
    result3 = LibDeck_PokerGetBest(hand3, community);
@@ -127,6 +116,7 @@ main(int argc, char **argv)
    printf("\nHand 3 made = "); LibDeck_PrintCol(result3->kickerCol);
    printf(" = "); LibDeck_PrintPokerResult(result3);
 
+   // Announce the winner
    winner = LibDeck_PokerGetWinner(hands, 3, community);
    switch (winner) {
       case 0:
