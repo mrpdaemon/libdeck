@@ -265,7 +265,7 @@ LibDeck_PokerFreeResult(LibDeckPokerResult *result) // IN: Result to free
  */
 LibDeckPokerResult *
 LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
-                          LibDeckCol *community) // IN: Community (5 cards)
+                     LibDeckCol *community) // IN: Community (5 cards)
 {
    LibDeckPokerResult *bestResult = NULL, *currentResult;
    LibDeckCombCtx *combCtx;

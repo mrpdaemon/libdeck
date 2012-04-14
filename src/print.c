@@ -73,16 +73,16 @@ LibDeckPrintCardSuite(int suite) // IN: Card suite to print
 {
    switch (suite) {
       case LIBDECK_CARD_SUITE_SPADE:
-         printf("S");
+         printf("s");
          break;
       case LIBDECK_CARD_SUITE_HEART:
-         printf("H");
+         printf("h");
          break;
       case LIBDECK_CARD_SUITE_DIAMOND:
-         printf("D");
+         printf("d");
          break;
       case LIBDECK_CARD_SUITE_CLUB:
-         printf("C");
+         printf("c");
          break;
       default:
          break;
