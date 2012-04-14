@@ -9,8 +9,13 @@ hands, and winning odds can be calculated.
 
 ## Building
 
-libdeck uses autotools, so building it should simply be a matter of:
+libdeck uses autotools, so it can be configured and built as follows:
 
+    $ aclocal
+    $ autoconf
+    $ autoheader
+    $ libtoolize
+    $ automake -a
     $ ./configure
     $ make
 
