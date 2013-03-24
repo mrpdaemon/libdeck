@@ -15,6 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -389,7 +390,7 @@ LibDeckPokerCalcOddsThreadFn(void *arg)
    LibDeck_ColFree(commBuf);
 }
 
-#define LIBDECK_POKER_NUM_THREADS 1
+#define LIBDECK_POKER_NUM_THREADS 8
 
 int
 LibDeck_PokerCalcOdds(LibDeckCol **hands,
@@ -400,9 +401,10 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
 {
    int i, j, *winCountTotal = calloc(numHands, sizeof(int));
    int numFlips = 5 - community->numCards;
-   int compCountTotal = 0;
+   int compCountTotal = 0, result;
    LibDeckCombCtx **combCtxArray;
    LibDeckPokerCalcOddsThreadCtx threadCtx[LIBDECK_POKER_NUM_THREADS];
+   pthread_t threads[LIBDECK_POKER_NUM_THREADS];
 
    if (numFlips <= 0) { // check more things, num hands, deck size etc.
       //XXX: error
@@ -420,8 +422,20 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
 	  threadCtx[i].winCount = calloc(numHands, sizeof(int));
    }
 
-   //XXX: Spawn threads / join on them
-   LibDeckPokerCalcOddsThreadFn(&threadCtx[0]);
+   // Spawn threads
+   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+	  result = pthread_create(&threads[i], NULL, LibDeckPokerCalcOddsThreadFn,
+	                          &threadCtx[i]);
+	  if (result != 0) {
+		 //XXX: error handling
+		 return -1;
+	  }
+   }
+
+   // Join on threads to wait for them to exit
+   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+	  pthread_join(threads[i], NULL);
+   }
 
    // Combine thread results
    for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {

@@ -1,6 +1,6 @@
 bin_PROGRAMS = testapp
 testapp_SOURCES = testapp.c
-testapp_LDADD = libdeck.la
+testapp_LDADD = libdeck.la -lpthread
 
 lib_LTLIBRARIES = libdeck.la
 libdeck_la_CFLAGS = -DHAVE_DEVRANDOM
