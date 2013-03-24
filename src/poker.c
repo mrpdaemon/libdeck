@@ -268,6 +268,7 @@ LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
                      LibDeckCol *community) // IN: Community (5 cards)
 {
    LibDeckPokerResult *bestResult = NULL, *currentResult;
+   LibDeckCombCtx **combCtxArray;
    LibDeckCombCtx *combCtx;
    LibDeckCol *combineCol, *handBuf;
 
@@ -289,7 +290,8 @@ LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
 
    // Get combinations going on
    handBuf = LibDeck_ColNew(5);
-   combCtx = LibDeck_CombNew(combineCol, 5, 1);
+   combCtxArray = LibDeck_CombNew(combineCol, 5, 1, 1);
+   combCtx = combCtxArray[0];
    while (LibDeck_CombGetNext(combCtx, handBuf)) {
       currentResult = LibDeck_PokerClassify(handBuf); 
       if (bestResult == NULL) {
@@ -308,6 +310,7 @@ LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
    LibDeck_ColFree(handBuf);
    LibDeck_ColFree(combineCol);
    LibDeck_CombDestroy(combCtx);
+   free(combCtxArray);
 
    return bestResult;
 }
@@ -357,6 +360,7 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    int compCount = 0, winner = 0, i = 0;
    int *winCount = calloc(numHands, sizeof(int));
    int numFlips = 5 - community->numCards;
+   LibDeckCombCtx **combCtxArray;
    LibDeckCombCtx *combCtx;
    LibDeckCol *commBuf;
 
@@ -365,7 +369,8 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
       return -1;
    }
 
-   combCtx = LibDeck_CombNew(deck, numFlips, 1);
+   combCtxArray = LibDeck_CombNew(deck, numFlips, 1, 1);
+   combCtx = combCtxArray[0];
    commBuf = LibDeck_ColNew(5);
  
    // Try all possible combinations for remaining flips (5 - N)
@@ -391,6 +396,7 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
 
    LibDeck_ColFree(commBuf);
    LibDeck_CombDestroy(combCtx);
+   free(combCtxArray);
 
    return 0;
 }

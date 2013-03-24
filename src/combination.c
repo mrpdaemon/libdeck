@@ -29,25 +29,19 @@
  *    given collection.
  *
  * Results:
- *    Pointer to newly allocated context, NULL on error.
+ *    Pointer to newly allocated context(es), NULL on error.
  *
  * Side effects:
  *    None.
  */
-LibDeckCombCtx *
+LibDeckCombCtx **
 LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
                 int combSize,           // IN: Size of each combination
+                int numThreads,         // IN: Number of threads to use
                 int copy)               // IN: Take a copy of the collection?
 {
-   LibDeckCombCtx *result;
-   int i;
-
-   result = calloc(1, sizeof(LibDeckCombCtx) + combSize * sizeof(int));
-
-   if (result == NULL) {
-      printf("ERROR: Failed to allocate combination context.\n");
-      return NULL;
-   }
+   LibDeckCombCtx **result;
+   int i, j, idxZeroPerThread, curIdxZero = 0;
 
    if (combSize > collection->numCards) {
       printf("ERROR: Combination size %d larger than the collection %d\n",
@@ -55,20 +49,53 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
       return NULL;
    }
 
-   result->combSize = combSize;
-   result->done = 0;
+   result = calloc(1, sizeof(LibDeckCombCtx *) * numThreads);
 
-   if (copy) {
-      result->collection = LibDeck_ColClone(collection);
-      result->copy = 1;
-   } else {
-      result->collection = collection;
-      result->copy = 0;
+   if (result == NULL) {
+      printf("ERROR: Failed to allocate combination context.\n");
+      return NULL;
    }
 
-   // Set up initial state to first n cards
-   for (i = 0; i < combSize; i++) {
-      result->idxState[i] = i;
+   // Compute how many idx[0] values each thread should compute
+   if (combSize % numThreads == 0) {
+	  idxZeroPerThread = combSize / numThreads;
+   } else {
+	  idxZeroPerThread = (combSize / numThreads) + 1;
+   }
+
+   for (i = 0; i < numThreads; i++) {
+      result[i] = calloc(1, sizeof(LibDeckCombCtx) + combSize * sizeof(int));
+
+      if (result[i] == NULL) {
+         printf("ERROR: Failed to allocate combination context.\n");
+         for (j = 0; j < i; j++) {
+            free(result[j]);
+         }
+         free(result);
+         return NULL;
+	  }
+
+	  result[i]->combSize = combSize;
+	  result[i]->done = 0;
+
+	  curIdxZero += idxZeroPerThread;
+	  if (curIdxZero > combSize) {
+		 curIdxZero = combSize;
+	  }
+	  result[i]->lastIdxZeroValue = curIdxZero;
+
+	  if (copy) {
+	     result[i]->collection = LibDeck_ColClone(collection);
+	     result[i]->copy = 1;
+	  } else {
+	     result[i]->collection = collection;
+	     result[i]->copy = 0;
+	  }
+
+	  // Set up initial state to first n cards
+	  for (j = 0; j < combSize; j++) {
+	     result[i]->idxState[j] = j;
+	  }
    }
 
    return result;
@@ -126,6 +153,11 @@ LibDeck_CombGetNext(LibDeckCombCtx *combCtx, // IN: Combination context
          combCtx->idxState[i] = updateVal;
          updateVal++;
       }
+   }
+
+   if (terminate == 0 && combCtx->idxState[0] > combCtx->lastIdxZeroValue) {
+	  // This thread is done with its work
+	  combCtx->done = 1;
    }
 
    return 1;

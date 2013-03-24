@@ -26,10 +26,11 @@ typedef struct LibDeckCombCtx {
    int done;                // whether all combinations are exhausted
    int copy;                // whether we took a copy of the initial collection
    LibDeckCol *collection;  // pointer to the collection to permute over
+   int lastIdxZeroValue;    // last value of idxState[0] for this thread
    int idxState[0];         // array for current indices
 } LibDeckCombCtx;
 
-LibDeckCombCtx *LibDeck_CombNew(LibDeckCol *, int, int);
+LibDeckCombCtx **LibDeck_CombNew(LibDeckCol *, int, int, int);
 int            LibDeck_CombGetNext(LibDeckCombCtx *, LibDeckCol *);
 void           LibDeck_CombDestroy(LibDeckCombCtx *);
 
