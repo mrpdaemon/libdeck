@@ -350,6 +350,47 @@ LibDeck_PokerGetWinner(LibDeckCol **hands,
    return draw ? -1 : winner;
 }
 
+typedef struct LibDeckPokerCalcOddsThreadCtx {
+   LibDeckCombCtx *combCtx; // IN: Combination context for this thread
+   LibDeckCol **hands;      // IN: Hands to compare
+   int numHands;            // IN: Number of hands
+   LibDeckCol *community;   // IN: The community cards
+
+   int *winCount; // OUT: array of win counts for each hand
+   int compCount; // OUT: number of comparisons done
+} LibDeckPokerCalcOddsThreadCtx;
+
+void
+LibDeckPokerCalcOddsThreadFn(void *arg)
+{
+   LibDeckPokerCalcOddsThreadCtx *threadCtx;
+   threadCtx = (LibDeckPokerCalcOddsThreadCtx *) arg;
+   LibDeckCol *commBuf = LibDeck_ColNew(5);
+   int winner;
+
+   // Try all possible combinations for remaining flips (5 - N)
+   while (LibDeck_CombGetNext(threadCtx->combCtx, commBuf)) {
+
+      // Add N existing community cards to the (5 - N) from this combination
+      LibDeck_ColAppend(&commBuf, threadCtx->community);
+
+      // Find out who wins
+      winner = LibDeck_PokerGetWinner(threadCtx->hands, threadCtx->numHands,
+                                      commBuf);
+
+      if (winner >= 0) {
+         threadCtx->winCount[winner]++;
+      }
+
+      LibDeck_ColDiscardN(commBuf, 5, 1);
+      threadCtx->compCount++;
+   }
+
+   LibDeck_ColFree(commBuf);
+}
+
+#define LIBDECK_POKER_NUM_THREADS 1
+
 int
 LibDeck_PokerCalcOdds(LibDeckCol **hands,
                       int numHands,
@@ -357,45 +398,48 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
                       LibDeckCol *deck,
                       int *results)
 {
-   int compCount = 0, winner = 0, i = 0;
-   int *winCount = calloc(numHands, sizeof(int));
+   int i, j, *winCountTotal = calloc(numHands, sizeof(int));
    int numFlips = 5 - community->numCards;
+   int compCountTotal = 0;
    LibDeckCombCtx **combCtxArray;
-   LibDeckCombCtx *combCtx;
-   LibDeckCol *commBuf;
+   LibDeckPokerCalcOddsThreadCtx threadCtx[LIBDECK_POKER_NUM_THREADS];
 
    if (numFlips <= 0) { // check more things, num hands, deck size etc.
       //XXX: error
       return -1;
    }
 
-   combCtxArray = LibDeck_CombNew(deck, numFlips, 1, 1);
-   combCtx = combCtxArray[0];
-   commBuf = LibDeck_ColNew(5);
- 
-   // Try all possible combinations for remaining flips (5 - N)
-   while (LibDeck_CombGetNext(combCtx, commBuf)) {
+   combCtxArray = LibDeck_CombNew(deck, numFlips, LIBDECK_POKER_NUM_THREADS, 1);
 
-      // Add N existing community cards to the (5 - N) from this combination
-      LibDeck_ColAppend(&commBuf, community);
-
-      // Find out who wins
-      winner = LibDeck_PokerGetWinner(hands, numHands, commBuf);
-
-      if (winner >= 0) {
-         winCount[winner]++;
-      }
-
-      LibDeck_ColDiscardN(commBuf, 5, 1);
-      compCount++;
+   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+	  threadCtx[i].combCtx = combCtxArray[i];
+	  threadCtx[i].community = community;
+	  threadCtx[i].hands = hands;
+	  threadCtx[i].numHands = numHands;
+	  threadCtx[i].compCount = 0;
+	  threadCtx[i].winCount = calloc(numHands, sizeof(int));
    }
 
+   //XXX: Spawn threads / join on them
+   LibDeckPokerCalcOddsThreadFn(&threadCtx[0]);
+
+   // Combine thread results
+   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+	  for (j = 0; j < numHands; j++) {
+		 winCountTotal[j] += threadCtx[i].winCount[j];
+	  }
+	  compCountTotal += threadCtx[i].compCount;
+   }
+
+   // Compute odds
    for (i = 0; i < numHands; i++) {
-      results[i] = (winCount[i] * 100) / compCount;
+      results[i] = (winCountTotal[i] * 100) / compCountTotal;
    }
 
-   LibDeck_ColFree(commBuf);
-   LibDeck_CombDestroy(combCtx);
+   // Clean up
+   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+	  LibDeck_CombDestroy(combCtxArray[i]);
+   }
    free(combCtxArray);
 
    return 0;
