@@ -22,6 +22,46 @@
 #include "combination.h"
 
 /*
+ * LibDeckCombMove --
+ *
+ *    Move the given combination context forward by one increment.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Combination is updated with new state. "done" is set if the combination
+ *    is over.
+ */
+void
+LibDeckCombMove(LibDeckCombCtx *combCtx)
+{
+   int i, terminate, current, updateVal;
+
+   // Determine where to start trickling updates
+   terminate = combCtx->combSize - 1;
+   while (terminate >= 0) {
+      current = combCtx->idxState[terminate];
+      if (current != ((combCtx->collection->numCards - 1) -
+                      (combCtx->combSize - (terminate + 1)))) {
+         break;
+      }
+      terminate--;
+   }
+
+   if (terminate < 0) {
+      combCtx->done = 1;
+   } else {
+      // Move forward all indices from terminate on
+      updateVal = combCtx->idxState[terminate] + 1;
+      for (i = terminate; i < combCtx->combSize; i++) {
+         combCtx->idxState[i] = updateVal;
+         updateVal++;
+      }
+   }
+}
+
+/*
  * LibDeck_CombNew --
  *
  *    Allocate, initialize and return a new combination context for purposes
@@ -41,7 +81,7 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
                 int copy)               // IN: Take a copy of the collection?
 {
    LibDeckCombCtx **result;
-   int i, j, idxZeroPerThread, curIdxZero = 0;
+   int i, j;
 
    if (combSize > collection->numCards) {
       printf("ERROR: Combination size %d larger than the collection %d\n",
@@ -54,13 +94,6 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
    if (result == NULL) {
       printf("ERROR: Failed to allocate combination context.\n");
       return NULL;
-   }
-
-   // Compute how many idx[0] values each thread should compute
-   if (combSize % numThreads == 0) {
-	  idxZeroPerThread = combSize / numThreads;
-   } else {
-	  idxZeroPerThread = (combSize / numThreads) + 1;
    }
 
    for (i = 0; i < numThreads; i++) {
@@ -76,13 +109,8 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
 	  }
 
 	  result[i]->combSize = combSize;
+	  result[i]->increment = numThreads;
 	  result[i]->done = 0;
-
-	  curIdxZero += idxZeroPerThread;
-	  if (curIdxZero > combSize) {
-		 curIdxZero = combSize;
-	  }
-	  result[i]->lastIdxZeroValue = curIdxZero;
 
 	  if (copy) {
 	     result[i]->collection = LibDeck_ColClone(collection);
@@ -95,6 +123,11 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
 	  // Set up initial state to first n cards
 	  for (j = 0; j < combSize; j++) {
 	     result[i]->idxState[j] = j;
+	  }
+
+	  // Move the initial combination forward by the thread's ID
+	  for (j = 0; j < i; j++) {
+		 LibDeckCombMove(result[i]);
 	  }
    }
 
@@ -116,7 +149,7 @@ int
 LibDeck_CombGetNext(LibDeckCombCtx *combCtx, // IN: Combination context
                     LibDeckCol *colBuf)      // OUT: Buffer to copy combination to
 {
-   int i, terminate, current, updateVal;
+   int i;
 
    if ((colBuf->maxSize - colBuf->numCards) < combCtx->combSize) {
       printf("ERROR: Combination buffer does not have enough space.\n");
@@ -133,31 +166,12 @@ LibDeck_CombGetNext(LibDeckCombCtx *combCtx, // IN: Combination context
                                                    combCtx->idxState[i]));
    }
 
-   // Determine where to start trickling updates
-   terminate = combCtx->combSize - 1;
-   while (terminate >= 0) {
-      current = combCtx->idxState[terminate];
-      if (current != ((combCtx->collection->numCards - 1) - 
-                      (combCtx->combSize - (terminate + 1)))) {
-         break;
-      }
-      terminate--;
-   }
-
-   if (terminate < 0) {
-      combCtx->done = 1;
-   } else {
-      // Move forward all indices from terminate on
-      updateVal = combCtx->idxState[terminate] + 1;
-      for (i = terminate; i < combCtx->combSize; i++) {
-         combCtx->idxState[i] = updateVal;
-         updateVal++;
-      }
-   }
-
-   if (terminate == 0 && combCtx->idxState[0] > combCtx->lastIdxZeroValue) {
-	  // This thread is done with its work
-	  combCtx->done = 1;
+   // Move the combination forward by the thread increment
+   for (i = 0; i < combCtx->increment; i++) {
+	  LibDeckCombMove(combCtx);
+	  if (combCtx->done) {
+		 break;
+	  }
    }
 
    return 1;

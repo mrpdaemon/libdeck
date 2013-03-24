@@ -26,7 +26,7 @@ typedef struct LibDeckCombCtx {
    int done;                // whether all combinations are exhausted
    int copy;                // whether we took a copy of the initial collection
    LibDeckCol *collection;  // pointer to the collection to permute over
-   int lastIdxZeroValue;    // last value of idxState[0] for this thread
+   int increment;           // how many increments per run this thread should do
    int idxState[0];         // array for current indices
 } LibDeckCombCtx;
 
