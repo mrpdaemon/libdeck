@@ -46,7 +46,12 @@ main(int argc, char **argv)
    LibDeckCombCtx *combCtx;
    int i, winner, odds[3];
 
-   LibDeck_InitLibrary();
+   if (argc < 2) {
+	  printf("Usage %s <numThreads>\n", argv[0]);
+	  return 1;
+   }
+
+   LibDeck_InitLibrary(atoi(argv[1]));
 #ifdef SUITE_COMPARE
    LibDeck_RegisterSuiteCompFn(mySuiteCompFn);
 #endif /* SUITE_COMPARE */

@@ -26,7 +26,9 @@
 #include "print.h"
 #include "util.h"
 
-int  LibDeck_InitLibrary(void);
+extern int libDeckNumThreads;
+
+int  LibDeck_InitLibrary(int);
 void LibDeck_DestroyLibrary(void);
 
 #endif /* _LIBDECK_H */

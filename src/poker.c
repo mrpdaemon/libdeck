@@ -22,6 +22,7 @@
 
 #include "collection.h"
 #include "combination.h"
+#include "libdeck.h"
 #include "poker.h"
 
 /*
@@ -390,8 +391,6 @@ LibDeckPokerCalcOddsThreadFn(void *arg)
    LibDeck_ColFree(commBuf);
 }
 
-#define LIBDECK_POKER_NUM_THREADS 8
-
 int
 LibDeck_PokerCalcOdds(LibDeckCol **hands,
                       int numHands,
@@ -403,17 +402,17 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    int numFlips = 5 - community->numCards;
    int compCountTotal = 0, result;
    LibDeckCombCtx **combCtxArray;
-   LibDeckPokerCalcOddsThreadCtx threadCtx[LIBDECK_POKER_NUM_THREADS];
-   pthread_t threads[LIBDECK_POKER_NUM_THREADS];
+   LibDeckPokerCalcOddsThreadCtx threadCtx[libDeckNumThreads];
+   pthread_t threads[libDeckNumThreads];
 
    if (numFlips <= 0) { // check more things, num hands, deck size etc.
       //XXX: error
       return -1;
    }
 
-   combCtxArray = LibDeck_CombNew(deck, numFlips, LIBDECK_POKER_NUM_THREADS, 1);
+   combCtxArray = LibDeck_CombNew(deck, numFlips, libDeckNumThreads, 1);
 
-   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+   for (i = 0; i < libDeckNumThreads; i++) {
 	  threadCtx[i].combCtx = combCtxArray[i];
 	  threadCtx[i].community = community;
 	  threadCtx[i].hands = hands;
@@ -423,7 +422,7 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    }
 
    // Spawn threads
-   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+   for (i = 0; i < libDeckNumThreads; i++) {
 	  result = pthread_create(&threads[i], NULL, LibDeckPokerCalcOddsThreadFn,
 	                          &threadCtx[i]);
 	  if (result != 0) {
@@ -433,12 +432,12 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    }
 
    // Join on threads to wait for them to exit
-   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+   for (i = 0; i < libDeckNumThreads; i++) {
 	  pthread_join(threads[i], NULL);
    }
 
    // Combine thread results
-   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+   for (i = 0; i < libDeckNumThreads; i++) {
 	  for (j = 0; j < numHands; j++) {
 		 winCountTotal[j] += threadCtx[i].winCount[j];
 	  }
@@ -451,7 +450,7 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    }
 
    // Clean up
-   for (i = 0; i < LIBDECK_POKER_NUM_THREADS; i++) {
+   for (i = 0; i < libDeckNumThreads; i++) {
 	  LibDeck_CombDestroy(combCtxArray[i]);
    }
    free(combCtxArray);

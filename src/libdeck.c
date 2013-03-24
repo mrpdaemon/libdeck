@@ -17,6 +17,9 @@
  */
 #include "util.h"
 
+/* Number of threads to use for library operations */
+int libDeckNumThreads = 1;
+
 /*
  * LibDeck_InitLibrary --
  *
@@ -29,8 +32,12 @@
  *    None.
  */
 int
-LibDeck_InitLibrary(void)
+LibDeck_InitLibrary(int numThreads)
 {
+   if (numThreads > 1) {
+	  libDeckNumThreads = numThreads;
+   }
+
    return LibDeck_UtilInitRandom();
 }
 
