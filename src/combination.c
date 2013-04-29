@@ -106,29 +106,29 @@ LibDeck_CombNew(LibDeckCol *collection, // IN: Collection to run combinations on
          }
          free(result);
          return NULL;
-	  }
+      }
 
-	  result[i]->combSize = combSize;
-	  result[i]->increment = numThreads;
-	  result[i]->done = 0;
+      result[i]->combSize = combSize;
+      result[i]->increment = numThreads;
+      result[i]->done = 0;
 
-	  if (copy) {
-	     result[i]->collection = LibDeck_ColClone(collection);
-	     result[i]->copy = 1;
-	  } else {
-	     result[i]->collection = collection;
-	     result[i]->copy = 0;
-	  }
+      if (copy) {
+         result[i]->collection = LibDeck_ColClone(collection);
+         result[i]->copy = 1;
+      } else {
+         result[i]->collection = collection;
+         result[i]->copy = 0;
+      }
 
-	  // Set up initial state to first n cards
-	  for (j = 0; j < combSize; j++) {
-	     result[i]->idxState[j] = j;
-	  }
+      // Set up initial state to first n cards
+      for (j = 0; j < combSize; j++) {
+         result[i]->idxState[j] = j;
+      }
 
-	  // Move the initial combination forward by the thread's ID
-	  for (j = 0; j < i; j++) {
-		 LibDeckCombMove(result[i]);
-	  }
+      // Move the initial combination forward by the thread's ID
+      for (j = 0; j < i; j++) {
+         LibDeckCombMove(result[i]);
+      }
    }
 
    return result;
@@ -168,10 +168,10 @@ LibDeck_CombGetNext(LibDeckCombCtx *combCtx, // IN: Combination context
 
    // Move the combination forward by the thread increment
    for (i = 0; i < combCtx->increment; i++) {
-	  LibDeckCombMove(combCtx);
-	  if (combCtx->done) {
-		 break;
-	  }
+      LibDeckCombMove(combCtx);
+      if (combCtx->done) {
+         break;
+      }
    }
 
    return 1;

@@ -40,7 +40,7 @@ typedef struct LibDeckPokerResult {
 
 LibDeckPokerResult   *LibDeck_PokerClassify(LibDeckCol *);
 
-int      LibDeck_PokerCompare(LibDeckPokerResult *, 
+int      LibDeck_PokerCompare(LibDeckPokerResult *,
                               LibDeckPokerResult *);
 
 void     LibDeck_PokerFreeResult(LibDeckPokerResult *);

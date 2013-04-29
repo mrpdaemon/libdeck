@@ -262,7 +262,7 @@ LibDeck_ColSwapCards(LibDeckCol *collection, // IN: Collection to swap from
 {
    LibDeckCard tmpCard;
 
-   if ((c1 > collection->maxSize || c1 < 0) || 
+   if ((c1 > collection->maxSize || c1 < 0) ||
        (c2 > collection->maxSize || c2 < 0) ||
        (c1 == c2)) {
       return;
@@ -312,7 +312,7 @@ LibDeck_ColShuffle(LibDeckCol *collection,  // IN: Collection to shuffle
 void
 LibDeck_ColSort(LibDeckCol *collection) // IN: Collection to sort
 {
-	int i, j;
+   int i, j;
 
    for (i = 0; i < (collection->numCards - 1); i++) {
       for (j = i + 1; j < collection->numCards; j++) {
@@ -338,7 +338,7 @@ LibDeck_ColSort(LibDeckCol *collection) // IN: Collection to sort
 void
 LibDeck_ColReverse(LibDeckCol *collection) // IN: Collection to reverse
 {
-	int i;
+   int i;
 
    for (i = 0; i < (collection->numCards / 2); i++) {
       LibDeck_ColSwapCards(collection, i, collection->numCards - (i + 1));
@@ -397,9 +397,9 @@ LibDeck_ColAppend(LibDeckCol **appendTo,  // IN: Collection to append to
 
    if ((tmpAppendTo->maxSize - tmpAppendTo->numCards) < appendFrom->numCards) {
       // Need to reallocate
-      tmpAppendTo = realloc(tmpAppendTo, 
+      tmpAppendTo = realloc(tmpAppendTo,
                             sizeof(LibDeckCol) +
-                            (tmpAppendTo->numCards + appendFrom->numCards) * 
+                            (tmpAppendTo->numCards + appendFrom->numCards) *
                             sizeof(LibDeckCard));
 
       if (tmpAppendTo == NULL) {

@@ -280,7 +280,7 @@ LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
    }
 
    if (community->numCards != 5) {
-      printf("ERROR: Invalid number of community cards %d != 5\n", 
+      printf("ERROR: Invalid number of community cards %d != 5\n",
              community->numCards);
       return NULL;
    }
@@ -295,7 +295,7 @@ LibDeck_PokerGetBest(LibDeckCol *hand,      // IN: Hand (2 cards)
    combCtxArray = LibDeck_CombNew(combineCol, 5, 1, 1);
    combCtx = combCtxArray[0];
    while (LibDeck_CombGetNext(combCtx, handBuf)) {
-      currentResult = LibDeck_PokerClassify(handBuf); 
+      currentResult = LibDeck_PokerClassify(handBuf);
       if (bestResult == NULL) {
          bestResult = currentResult;
       } else {
@@ -324,7 +324,7 @@ LibDeck_PokerGetWinner(LibDeckCol **hands,
 {
    int i, winner = 0, draw = 0, compare;
    //XXX: Sanity checking
-   LibDeckPokerResult **results = calloc(numHands, 
+   LibDeckPokerResult **results = calloc(numHands,
                                          sizeof(LibDeckPokerResult *));
 
    // Compute best results
@@ -413,35 +413,35 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
    combCtxArray = LibDeck_CombNew(deck, numFlips, libDeckNumThreads, 1);
 
    for (i = 0; i < libDeckNumThreads; i++) {
-	  threadCtx[i].combCtx = combCtxArray[i];
-	  threadCtx[i].community = community;
-	  threadCtx[i].hands = hands;
-	  threadCtx[i].numHands = numHands;
-	  threadCtx[i].compCount = 0;
-	  threadCtx[i].winCount = calloc(numHands, sizeof(int));
+      threadCtx[i].combCtx = combCtxArray[i];
+      threadCtx[i].community = community;
+      threadCtx[i].hands = hands;
+      threadCtx[i].numHands = numHands;
+      threadCtx[i].compCount = 0;
+      threadCtx[i].winCount = calloc(numHands, sizeof(int));
    }
 
    // Spawn threads
    for (i = 0; i < libDeckNumThreads; i++) {
-	  result = pthread_create(&threads[i], NULL, LibDeckPokerCalcOddsThreadFn,
-	                          &threadCtx[i]);
-	  if (result != 0) {
-		 //XXX: error handling
-		 return -1;
-	  }
+      result = pthread_create(&threads[i], NULL, LibDeckPokerCalcOddsThreadFn,
+            &threadCtx[i]);
+      if (result != 0) {
+         //XXX: error handling
+         return -1;
+      }
    }
 
    // Join on threads to wait for them to exit
    for (i = 0; i < libDeckNumThreads; i++) {
-	  pthread_join(threads[i], NULL);
+      pthread_join(threads[i], NULL);
    }
 
    // Combine thread results
    for (i = 0; i < libDeckNumThreads; i++) {
-	  for (j = 0; j < numHands; j++) {
-		 winCountTotal[j] += threadCtx[i].winCount[j];
-	  }
-	  compCountTotal += threadCtx[i].compCount;
+      for (j = 0; j < numHands; j++) {
+         winCountTotal[j] += threadCtx[i].winCount[j];
+      }
+      compCountTotal += threadCtx[i].compCount;
    }
 
    // Compute odds
@@ -451,7 +451,7 @@ LibDeck_PokerCalcOdds(LibDeckCol **hands,
 
    // Clean up
    for (i = 0; i < libDeckNumThreads; i++) {
-	  LibDeck_CombDestroy(combCtxArray[i]);
+      LibDeck_CombDestroy(combCtxArray[i]);
    }
    free(combCtxArray);
 

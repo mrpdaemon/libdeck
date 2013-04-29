@@ -35,7 +35,7 @@ int
 LibDeck_InitLibrary(int numThreads)
 {
    if (numThreads > 1) {
-	  libDeckNumThreads = numThreads;
+      libDeckNumThreads = numThreads;
    }
 
    return LibDeck_UtilInitRandom();
