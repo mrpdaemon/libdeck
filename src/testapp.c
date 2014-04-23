@@ -62,13 +62,21 @@ main(int argc, char **argv)
    printf("Shuffled deck = "); LibDeck_PrintCol(myDeck); printf("\n");
 
    // Deal 3 hands from the deck
-   hands[0] = hand1 = LibDeck_ColPopN(myDeck, 2);
+   hands[0] = hand1 = LibDeck_ColPopN(myDeck, 1);
+   hands[1] = hand2 = LibDeck_ColPopN(myDeck, 1);
+   hands[2] = hand3 = LibDeck_ColPopN(myDeck, 1);
+   tmpHand = LibDeck_ColPopN(myDeck, 1);
+   LibDeck_ColAppend(&hand1, tmpHand);
+   LibDeck_ColFree(tmpHand);
+   tmpHand = LibDeck_ColPopN(myDeck, 1);
+   LibDeck_ColAppend(&hand2, tmpHand);
+   LibDeck_ColFree(tmpHand);
+   tmpHand = LibDeck_ColPopN(myDeck, 1);
+   LibDeck_ColAppend(&hand3, tmpHand);
+   LibDeck_ColFree(tmpHand);
+
    printf("\nHand 1 = "); LibDeck_PrintCol(hand1);
-
-   hands[1] = hand2 = LibDeck_ColPopN(myDeck, 2);
    printf("\nHand 2 = "); LibDeck_PrintCol(hand2);
-
-   hands[2] = hand3 = LibDeck_ColPopN(myDeck, 2);
    printf("\nHand 3 = "); LibDeck_PrintCol(hand3);
    printf("\n");
 
@@ -79,6 +87,9 @@ main(int argc, char **argv)
           odds[0], odds[1], odds[2]);
    LibDeck_ColFree(tmpHand);
 
+   // Burn a card
+   LibDeck_ColFree(LibDeck_ColPopN(myDeck, 1));
+
    // FLOP
    community = LibDeck_ColPopN(myDeck, 3);
    printf("\n\nFlop = "); LibDeck_PrintCol(community);
@@ -88,6 +99,9 @@ main(int argc, char **argv)
    LibDeck_PokerCalcOdds(hands, 3, community, myDeck, odds);
    printf("Post-flop odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
           odds[0], odds[1], odds[2]);
+
+   // Burn a card
+   LibDeck_ColFree(LibDeck_ColPopN(myDeck, 1));
 
    // TURN
    tmpHand = LibDeck_ColPopN(myDeck, 1);
@@ -100,6 +114,9 @@ main(int argc, char **argv)
    LibDeck_PokerCalcOdds(hands, 3, community, myDeck, odds);
    printf("Post-turn odds of winning:\nHand1: %d%%\nHand2: %d%%\nHand3: %d%%",
           odds[0], odds[1], odds[2]);
+
+   // Burn a card
+   LibDeck_ColFree(LibDeck_ColPopN(myDeck, 1));
 
    // RIVER
    tmpHand = LibDeck_ColPopN(myDeck, 1);
