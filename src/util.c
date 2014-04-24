@@ -17,15 +17,17 @@
  */
 #include "util.h"
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef HAVE_DEVRANDOM
+#ifdef DEVRANDOM
 #include <fcntl.h>
 #include <unistd.h>
 #else
 #include <time.h>
-#endif /* HAVE_DEVRANDOM */
+#endif /* DEVRANDOM */
 
 /* Flag to indicate whether random subsystem is initialized */
 static int randomInitialized = 0;
@@ -49,7 +51,7 @@ static int reseedCounter;
 static int
 LibDeckUtilSeedRandom(void)
 {
-#ifdef HAVE_DEVRANDOM
+#ifdef DEVRANDOM
    int fdRandom, randomInt, bytesRead;
 
    fdRandom = open(DEVRANDOM, O_RDONLY);

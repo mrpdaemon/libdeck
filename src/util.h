@@ -23,13 +23,6 @@
 #define LIBDECK_UTIL_RAND_RESEED 10000
 #endif /* RESEED_RANDOM */
 
-#ifdef HAVE_DEVRANDOM
-#ifndef DEVRANDOM
-/* Random device location */
-#define DEVRANDOM "/dev/urandom"
-#endif /* DEVRANDOM */
-#endif /* HAVE_DEVRANDOM */
-
 int  LibDeck_UtilInitRandom(void);
 int  LibDeck_UtilRandom(int);
 void LibDeck_UtilCloseRandom(void);
