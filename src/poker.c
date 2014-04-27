@@ -80,7 +80,7 @@ LibDeckPokerResult *
 LibDeck_PokerClassify(LibDeckCol *hand) // IN: Hand to evaluate
 {
    LibDeckPokerResult *result;
-   int storedValue, numHits, i, found;
+   int storedValue = 0, numHits = 0, i, found;
    LibDeckCard *currentCard, *searchCard, storedCard;
    LibDeckCol *copyCol, *kickerCol;
 
@@ -362,7 +362,7 @@ typedef struct LibDeckPokerCalcOddsThreadCtx {
    int compCount; // OUT: number of comparisons done
 } LibDeckPokerCalcOddsThreadCtx;
 
-void
+void *
 LibDeckPokerCalcOddsThreadFn(void *arg)
 {
    LibDeckPokerCalcOddsThreadCtx *threadCtx;
@@ -389,6 +389,8 @@ LibDeckPokerCalcOddsThreadFn(void *arg)
    }
 
    LibDeck_ColFree(commBuf);
+
+   return NULL;
 }
 
 int

@@ -43,8 +43,7 @@ main(int argc, char **argv)
 {
    LibDeckCol *hand1, *hand2, *hand3, *myDeck, *community, *tmpHand, *hands[3];
    LibDeckPokerResult *result1, *result2, *result3;
-   LibDeckCombCtx *combCtx;
-   int i, winner, odds[3];
+   int winner, odds[3];
 
    if (argc < 2) {
 	  printf("Usage %s <numThreads>\n", argv[0]);
